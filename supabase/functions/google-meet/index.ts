@@ -4,6 +4,7 @@
 //   POST {booking_id}      Called by the database when a booking is created, moved or cancelled.
 //
 // Secrets (Edge Functions → Secrets): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, WEBHOOK_SECRET, SITE_URL.
+// The function's own address is read from the database table app_secrets (key 'google_meet_url').
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase automatically.
 // Deploy with "Verify JWT" OFF: Google and the database call it directly, and it checks its own secrets.
 
@@ -15,10 +16,17 @@ const GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID');
 const GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET');
 const WEBHOOK_SECRET = env('WEBHOOK_SECRET');
 const SITE_URL = env('SITE_URL').replace(/\/$/, '');
-const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/google-meet`;
 const CAL = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
 
 const db = createClient(SUPABASE_URL, env('SUPABASE_SERVICE_ROLE_KEY'), { auth: { persistSession: false } });
+
+// This function's own public address (needed as the OAuth redirect). Saved once in the database
+// (app_secrets: google_meet_url), so it works whatever address Supabase assigned the function.
+async function functionUrl(): Promise<string> {
+  const { data } = await db.from('app_secrets').select('value').eq('key', 'google_meet_url').maybeSingle();
+  if (!data?.value) throw new Error('google_meet_url is not saved in app_secrets');
+  return data.value;
+}
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -42,7 +50,7 @@ async function oauthCallback(url: URL) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       code, client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET,
-      redirect_uri: FUNCTION_URL, grant_type: 'authorization_code',
+      redirect_uri: await functionUrl(), grant_type: 'authorization_code',
     }),
   });
   const tok = await res.json();

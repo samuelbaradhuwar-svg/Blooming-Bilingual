@@ -3,7 +3,6 @@ import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-meet`;
 const SCOPES = 'https://www.googleapis.com/auth/calendar.events openid email';
 
 const MESSAGES = {
@@ -39,11 +38,11 @@ export default function GoogleConnect() {
 
   const connect = async () => {
     setBusy(true);
-    const { data: nonce, error } = await supabase.rpc('admin_start_google_connect');
+    const { data, error } = await supabase.rpc('admin_start_google_connect');
     if (error) { setBusy(false); showToast(error.message, 'error'); return; }
     const params = new URLSearchParams({
-      client_id: CLIENT_ID, redirect_uri: FUNCTION_URL, response_type: 'code', scope: SCOPES,
-      access_type: 'offline', prompt: 'consent', state: nonce,
+      client_id: CLIENT_ID, redirect_uri: data.redirect_uri, response_type: 'code', scope: SCOPES,
+      access_type: 'offline', prompt: 'consent', state: data.nonce,
     });
     window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
   };
