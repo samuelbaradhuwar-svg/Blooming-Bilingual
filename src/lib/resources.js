@@ -18,15 +18,19 @@ export async function downloadResource(r) {
   return null;
 }
 
-// Show the file in a new tab (images, PDFs and text display; others download).
-// The tab is opened immediately on the click, before the slow part, so pop-up blockers allow it.
-export async function viewResource(r) {
-  const w = window.open('', '_blank');
-  const { data, error } = await supabase.storage.from('resources').createSignedUrl(r.storage_path, 120);
-  if (error) { if (w) w.close(); return error.message; }
-  if (!w) return 'Your browser blocked the new tab. Please allow pop-ups for this site, or use Download.';
-  w.location.href = data.signedUrl;
-  return null;
+// Fetch a file for an in-page preview. Returns { url, name, kind } where kind is image | pdf | text | other.
+// The caller must URL.revokeObjectURL(url) when done.
+export async function previewResource(r) {
+  const { data, error } = await supabase.storage.from('resources').download(r.storage_path);
+  if (error) return { error: error.message };
+  const name = fileNameOf(r);
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  const kind = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext) ? 'image'
+    : ext === 'pdf' ? 'pdf'
+    : ['txt', 'md', 'csv'].includes(ext) ? 'text' : 'other';
+  const typed = kind === 'pdf' ? new Blob([data], { type: 'application/pdf' }) : data;
+  const text = kind === 'text' ? await data.text() : null;
+  return { url: URL.createObjectURL(typed), name, kind, text };
 }
 
 // Upload a file into one student's private exchange: <student>/<random>-<name>, then record it.

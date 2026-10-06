@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { downloadResource, viewResource, uploadResource, deleteResource } from '../lib/resources';
+import { useEffect } from 'react';
+import { downloadResource, previewResource, uploadResource, deleteResource } from '../lib/resources';
 
 const CATEGORIES = ['', 'Grammar', 'Vocabulary', 'IELTS', 'Listening', 'Writing', 'Homework', 'Other'];
 
@@ -41,11 +42,39 @@ export function UploadForm({ studentId, onDone, label = '⬆ Upload' }) {
   );
 }
 
+// In-page preview (no new tab, so nothing for a pop-up blocker to stop).
+function Preview({ file }) {
+  const { showToast } = useApp();
+  const [p, setP] = useState(null);
+
+  useEffect(() => {
+    let url;
+    previewResource(file).then(res => {
+      if (res.error) { showToast(res.error, 'error'); setP({ kind: 'error' }); return; }
+      url = res.url; setP(res);
+    });
+    return () => { if (url) URL.revokeObjectURL(url); };
+  }, [file, showToast]);
+
+  const save = async () => { const err = await downloadResource(file); if (err) showToast(err, 'error'); };
+
+  if (!p) return <p style={{ fontSize: '.85rem' }}>Loading…</p>;
+  return (
+    <div>
+      {p.kind === 'image' && <img src={p.url} alt={file.title} style={{ maxWidth: '100%', maxHeight: '60vh', display: 'block', margin: '0 auto 14px', borderRadius: 8 }} />}
+      {p.kind === 'pdf' && <iframe src={p.url} title={file.title} style={{ width: '100%', height: '60vh', border: '1px solid var(--border)', borderRadius: 8, marginBottom: 14 }} />}
+      {p.kind === 'text' && <pre style={{ whiteSpace: 'pre-wrap', maxHeight: '55vh', overflow: 'auto', background: 'var(--off-white)', padding: 14, borderRadius: 8, fontSize: '.85rem', marginBottom: 14 }}>{p.text}</pre>}
+      {(p.kind === 'other' || p.kind === 'error') && <p style={{ fontSize: '.88rem', color: 'var(--ink-soft)', marginBottom: 14 }}>{p.kind === 'error' ? 'This file could not be opened.' : 'This type of file can\'t be previewed here. Use Download to open it on your device.'}</p>}
+      <button className="btn btn-primary btn-full" onClick={save}>↓ Download</button>
+    </div>
+  );
+}
+
 // A list of files. `who` says how to describe the sender; `canDelete(r)` decides who may delete.
 export function FileList({ items, who, canDelete, onChange, empty, showStudent }) {
-  const { showToast } = useApp();
+  const { showToast, openModal } = useApp();
   const download = async (r) => { const err = await downloadResource(r); if (err) showToast(err, 'error'); };
-  const view = async (r) => { const err = await viewResource(r); if (err) showToast(err, 'error'); };
+  const view = (r) => openModal(r.title, <Preview file={r} />);
   const remove = async (r) => {
     if (!window.confirm(`Delete "${r.title}"?`)) return;
     const err = await deleteResource(r);
