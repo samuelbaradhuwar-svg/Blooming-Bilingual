@@ -102,7 +102,16 @@ async function gcal(token: string, method: string, path: string, body?: unknown)
 
 // ───────── booking events ─────────
 async function bookingEvent(req: Request) {
-  if (!WEBHOOK_SECRET || req.headers.get('x-webhook-secret') !== WEBHOOK_SECRET) return json({ error: 'forbidden' }, 403);
+  const expected = WEBHOOK_SECRET.trim();
+  const received = (req.headers.get('x-webhook-secret') ?? '').trim();
+  if (!expected) {
+    console.error('WEBHOOK_SECRET is not set on this function');
+    return json({ error: 'forbidden', reason: 'WEBHOOK_SECRET is not set on the function' }, 403);
+  }
+  if (received !== expected) {
+    console.error(`webhook secret mismatch (function has ${expected.length} characters, request sent ${received.length})`);
+    return json({ error: 'forbidden', reason: 'the secret does not match' }, 403);
+  }
   const { booking_id } = await req.json();
   if (!booking_id) return json({ error: 'booking_id required' }, 400);
 
