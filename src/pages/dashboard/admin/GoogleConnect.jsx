@@ -55,7 +55,7 @@ export default function GoogleConnect() {
 
   return (
     <div className="card card-pad" style={{ marginBottom: 16 }}>
-      <div className="card-title" style={{ marginBottom: 4 }}>🎥 Google Meet</div>
+      <div className="card-title" style={{ marginBottom: 4 }}>🎥 Google Meet <span style={{ fontSize: '.65rem', color: 'var(--ink-muted)', fontWeight: 400 }}>· site version {__BUILD_ID__}</span></div>
       {status === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p> : status.connected ? (
         <>
           <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
