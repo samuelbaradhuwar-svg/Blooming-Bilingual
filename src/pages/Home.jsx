@@ -89,6 +89,7 @@ export default function Home() {
             <h4>Students</h4>
             <a onClick={() => navigate('/login')}>Login</a>
             <a onClick={() => navigate('/register')}>Create Account</a>
+            <a onClick={() => navigate('/tutor-login')}>Tutor Login</a>
           </div>
           <div className="footer-col">
             <h4>Connect</h4>

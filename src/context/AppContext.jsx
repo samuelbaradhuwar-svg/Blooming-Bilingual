@@ -38,6 +38,7 @@ export function AppProvider({ children }) {
   const [toast, setToast] = useState({ msg: '', type: '', visible: false });
   const [modal, setModal] = useState({ open: false, title: '', content: null });
   const toastTimer = useRef(null);
+  const roleCheck = useRef(false);   // true while a role-restricted sign-in is being verified
 
   // ── Toast ──
   const showToast = useCallback((msg, type = 'info') => {
@@ -58,6 +59,7 @@ export function AppProvider({ children }) {
   useEffect(() => {
     let active = true;
     const apply = async (session) => {
+      if (roleCheck.current) return;
       if (!session?.user) { if (active) { setCurrentUser(null); setAuthLoading(false); } return; }
       try {
         const user = await loadCurrentUser(session.user);
@@ -81,17 +83,28 @@ export function AppProvider({ children }) {
     if (typeof data === 'number') setCurrentUser(u => (u ? { ...u, credits: data } : u));
   }, []);
 
-  const login = useCallback(async (email, pass) => {
+  // requireRole: optionally refuse accounts without that role (used by the tutor login page).
+  const login = useCallback(async (email, pass, requireRole) => {
+    roleCheck.current = !!requireRole;
     const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: pass });
     if (error) {
+      roleCheck.current = false;
       showToast(error.message === 'Invalid login credentials' ? 'Incorrect email or password.' : error.message, 'error');
       return false;
     }
     // Load the profile now so the dashboard route is ready the moment we navigate.
-    setCurrentUser(await loadCurrentUser(data.user));
+    const user = await loadCurrentUser(data.user);
+    if (requireRole && user.role !== requireRole) {
+      await supabase.auth.signOut();
+      roleCheck.current = false;
+      showToast('That account is not a tutor account. Students sign in from the Student Login page.', 'error');
+      return null;
+    }
+    roleCheck.current = false;
+    setCurrentUser(user);
     const first = (data.user.user_metadata?.full_name || '').split(' ')[0];
     showToast(`${getGreeting()}${first ? ', ' + first : ''}! 🌸`, 'success');
-    return true;
+    return user;
   }, [showToast]);
 
   const logout = useCallback(async () => {

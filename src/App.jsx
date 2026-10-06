@@ -53,6 +53,7 @@ export default function App() {
           <Route path="/pricing"   element={<Pricing />} />
           <Route path="/contact"   element={<Contact />} />
           <Route path="/login"     element={<GuestOnly><Login /></GuestOnly>} />
+          <Route path="/tutor-login" element={<GuestOnly><Login tutor /></GuestOnly>} />
           <Route path="/register"  element={<GuestOnly><Register /></GuestOnly>} />
           <Route path="/dashboard/:view?" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="*"          element={<NotFound />} />

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
-export default function Login() {
+export default function Login({ tutor = false }) {
   const navigate = useNavigate();
   const { login } = useApp();
   const [email, setEmail] = useState('');
@@ -13,9 +13,9 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setBusy(true);
-    const ok = await login(email, pass);
+    const user = await login(email, pass, tutor ? 'admin' : undefined);
     setBusy(false);
-    if (ok) navigate('/dashboard', { replace: true });
+    if (user) navigate('/dashboard', { replace: true });
   };
 
   return (
@@ -25,8 +25,8 @@ export default function Login() {
           <div className="auth-logo-icon">🌸</div>
           <div className="auth-logo-name">The Blooming Bilingual</div>
         </div>
-        <h2>Welcome back</h2>
-        <p className="auth-sub">Sign in to your student portal</p>
+        <h2>{tutor ? 'Tutor sign in' : 'Welcome back'}</h2>
+        <p className="auth-sub">{tutor ? 'Sign in to manage your students and lessons' : 'Sign in to your student portal'}</p>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -41,7 +41,9 @@ export default function Login() {
         </form>
 
         <div className="auth-footer">
-          Don't have an account? <Link to="/register" style={{ color: 'var(--blue)', fontWeight: 500 }}>Create one</Link>
+          {tutor
+            ? <>Are you a student? <Link to="/login" style={{ color: 'var(--blue)', fontWeight: 500 }}>Student login</Link></>
+            : <>Don't have an account? <Link to="/register" style={{ color: 'var(--blue)', fontWeight: 500 }}>Create one</Link></>}
         </div>
       </div>
     </div>

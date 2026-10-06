@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
+import { dateKeyIn } from '../../../lib/time';
 import { supabase } from '../../../lib/supabase';
 
 // Working days run Mon–Sun; hours 09:00 … 23:00 then 00:00 (after midnight).
@@ -14,6 +15,7 @@ export default function AdminSchedule() {
   const [rules, setRules] = useState(null);      // Set of "weekday|HH:00:00"
   const [days, setDays] = useState([]);          // days off
   const [newDay, setNewDay] = useState('');
+  const [newDayEnd, setNewDayEnd] = useState('');
   const [tz, setTz] = useState('');
 
   const load = useCallback(async () => {
@@ -41,18 +43,42 @@ export default function AdminSchedule() {
 
   const addDayOff = async () => {
     if (!newDay) return;
-    const { error } = await supabase.from('availability_exceptions').insert({ day: newDay });
-    if (error) { showToast(error.code === '23505' ? 'That day is already off.' : error.message, 'error'); return; }
-    setNewDay(''); load();
+    const end = newDayEnd || newDay;
+    if (end < newDay) { showToast('The end date must be on or after the start date.', 'error'); return; }
+    // every date from start to end (inclusive), as YYYY-MM-DD
+    const dates = [];
+    for (let d = new Date(newDay + 'T12:00:00Z'); d.toISOString().slice(0, 10) <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+      dates.push(d.toISOString().slice(0, 10));
+      if (dates.length > 120) { showToast('Please add at most 120 days at a time.', 'error'); return; }
+    }
+    const { error } = await supabase.from('availability_exceptions').upsert(dates.map(day => ({ day })), { onConflict: 'day', ignoreDuplicates: true });
+    if (error) { showToast(error.message, 'error'); return; }
+    // Warn about lessons already booked in that period — those are NOT cancelled automatically.
+    const lo = new Date(newDay + 'T00:00:00Z').getTime() - 864e5;
+    const hi = new Date(end + 'T00:00:00Z').getTime() + 2 * 864e5;
+    const { data: booked } = await supabase.from('bookings').select('starts_at').eq('status', 'confirmed')
+      .gte('starts_at', new Date(lo).toISOString()).lte('starts_at', new Date(hi).toISOString());
+    const clash = (booked || []).filter(b => { const k = dateKeyIn(tz || 'UTC', new Date(b.starts_at)); return k >= newDay && k <= end; }).length;
+    showToast(clash ? `Leave added. ${clash} booked lesson${clash === 1 ? '' : 's'} fall in this period — cancel ${clash === 1 ? 'it' : 'them'} in Bookings.` : 'Leave added.', clash ? 'info' : 'success');
+    setNewDay(''); setNewDayEnd(''); load();
   };
-  const removeDayOff = async (day) => {
-    const { error } = await supabase.from('availability_exceptions').delete().eq('day', day);
+  // Collapse consecutive dates into ranges for display: [{from, to}]
+  const ranges = [];
+  for (const { day } of days) {
+    const last = ranges[ranges.length - 1];
+    const next = last && new Date(new Date(last.to + 'T12:00:00Z').getTime() + 864e5).toISOString().slice(0, 10);
+    if (last && next === day) last.to = day; else ranges.push({ from: day, to: day });
+  }
+  const fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const removeRange = async (r) => {
+    const { error } = await supabase.from('availability_exceptions').delete().gte('day', r.from).lte('day', r.to);
     if (error) showToast(error.message, 'error'); else load();
   };
 
   return (
     <>
-      <DashHeader title="Hours & days off" />
+      <DashHeader title="Hours & leave" />
       <div className="dash-main">
         <div className="card card-pad" style={{ marginBottom: 16 }}>
           <div className="card-title" style={{ marginBottom: 4 }}>Weekly hours</div>
@@ -86,18 +112,19 @@ export default function AdminSchedule() {
         </div>
 
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: 4 }}>Days off</div>
+          <div className="card-title" style={{ marginBottom: 4 }}>Leave & days off</div>
           <p style={{ fontSize: '.8rem', color: 'var(--ink-muted)', marginBottom: 14 }}>
             No new lessons can be booked on these days. Lessons already booked are not cancelled — do that in Bookings.
           </p>
           <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <input type="date" value={newDay} onChange={e => setNewDay(e.target.value)} style={{ maxWidth: 200 }} />
-            <button className="btn btn-primary btn-sm" disabled={!newDay} onClick={addDayOff}>Add day off</button>
+            <label style={{ fontSize: '.75rem', color: 'var(--ink-muted)' }}>From<br /><input type="date" value={newDay} onChange={e => setNewDay(e.target.value)} style={{ maxWidth: 180 }} /></label>
+            <label style={{ fontSize: '.75rem', color: 'var(--ink-muted)' }}>To (optional)<br /><input type="date" value={newDayEnd} min={newDay || undefined} onChange={e => setNewDayEnd(e.target.value)} style={{ maxWidth: 180 }} /></label>
+            <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-end' }} disabled={!newDay} onClick={addDayOff}>Add leave</button>
           </div>
-          {days.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No days off set.</p> : days.map(d => (
-            <div key={d.day} className="hw-item">
-              <div className="hw-info"><strong>{new Date(d.day + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</strong></div>
-              <button className="btn btn-ghost btn-sm" onClick={() => removeDayOff(d.day)}>Remove</button>
+          {ranges.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No leave booked.</p> : ranges.map(r => (
+            <div key={r.from} className="hw-item">
+              <div className="hw-info"><strong>{r.from === r.to ? fmt(r.from) : `${fmt(r.from)} → ${fmt(r.to)}`}</strong></div>
+              <button className="btn btn-ghost btn-sm" onClick={() => removeRange(r)}>Remove</button>
             </div>
           ))}
         </div>
