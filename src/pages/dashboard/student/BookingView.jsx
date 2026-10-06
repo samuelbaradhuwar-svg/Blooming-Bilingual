@@ -1,160 +1,166 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../../../context/AppContext';
+import { supabase } from '../../../lib/supabase';
 import DashHeader from '../../../components/dashboard/DashHeader';
-import { MONTHS, ALL_SLOTS, BOOKED_SLOTS } from '../../../data/constants';
+import { MONTHS } from '../../../data/constants';
 
-function getKey(year, month, day) { return `${year}-${month + 1}-${day}`; }
+const SUBJECTS = ['Conversational English', 'IELTS Preparation', 'Business English', 'Grammar Focus'];
+
+// Date key (YYYY-MM-DD) and clock time of an instant in the student's own time zone.
+const dateKeyIn = (tz, d) => new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+const timeIn = (tz, d) => new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
+const pad = (n) => String(n).padStart(2, '0');
 
 export default function BookingView({ onBuyCredits }) {
-  const { currentUser, addCredits, showToast } = useApp();
+  const { currentUser, refreshCredits, showToast } = useApp();
+  const tz = currentUser?.timezone || 'UTC';
+  const credits = currentUser?.credits ?? 0;
 
   const [bookMonth, setBookMonth] = useState(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); });
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [subject, setSubject] = useState('Conversational English');
-  const [bookedSlots, setBookedSlots] = useState(BOOKED_SLOTS);
+  const [slots, setSlots] = useState([]);          // Date[] of open lesson starts
+  const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState(null);   // 'YYYY-MM-DD' in student tz
+  const [selectedSlot, setSelectedSlot] = useState(null); // ISO string
+  const [subject, setSubject] = useState(SUBJECTS[0]);
+  const [busy, setBusy] = useState(false);
 
-  const credits = currentUser?.credits ?? 0;
   const year = bookMonth.getFullYear();
   const month = bookMonth.getMonth();
-
   const now = new Date();
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+
+  const loadSlots = useCallback(async () => {
+    setLoading(true);
+    // pad a day each side so time-zone offsets can't hide edge-of-month slots
+    const from = new Date(Date.UTC(year, month, 1) - 36e5 * 24);
+    const to = new Date(Date.UTC(year, month + 1, 1) + 36e5 * 24);
+    const { data, error } = await supabase.rpc('get_available_slots', { p_from: from.toISOString(), p_to: to.toISOString() });
+    if (error) showToast('Could not load available times.', 'error');
+    setSlots(error ? [] : data.map(r => new Date(r.starts_at)));
+    setLoading(false);
+  }, [year, month, showToast]);
+
+  useEffect(() => { loadSlots(); }, [loadSlots]);
+
+  // Group open slots by the student's local date.
+  const slotsByDay = useMemo(() => {
+    const map = {};
+    for (const d of slots) (map[dateKeyIn(tz, d)] ||= []).push(d);
+    return map;
+  }, [slots, tz]);
 
   const changeMonth = (dir) => {
     if (dir < 0 && isCurrentMonth) return;
     setBookMonth(m => new Date(m.getFullYear(), m.getMonth() + dir, 1));
-    setSelectedDay(null); setSelectedTime(null);
+    setSelectedDay(null); setSelectedSlot(null);
   };
 
-  const slotsForDay = useCallback((d) => {
-    const booked = bookedSlots[getKey(year, month, d)] || [];
-    const n = new Date();
-    const isToday = year === n.getFullYear() && month === n.getMonth() && d === n.getDate();
-    // slots after midnight (00:00) belong to the evening session, so only trim same-day past hours
-    return ALL_SLOTS.filter(s => !booked.includes(s) && !(isToday && s !== '00:00' && Number(s.slice(0, 2)) <= n.getHours()));
-  }, [bookedSlots, year, month]);
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const keyFor = (d) => `${year}-${pad(month + 1)}-${pad(d)}`;
 
-  const buildCalendar = () => {
-    const firstDow = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const today = new Date();
-    const cells = [];
-
-    for (let i = 0; i < firstDow; i++) cells.push({ key: `empty-${i}`, empty: true });
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dow = new Date(year, month, d).getDay();
-      const past = new Date(year, month, d) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const available = slotsForDay(d);
-      cells.push({ d, inactive: past || dow === 0, booked: !past && dow !== 0 && available.length === 0, hasSlots: available.length > 0 });
-    }
-    return cells;
-  };
-
-  const confirmBooking = () => {
-    if (!selectedDay || !selectedTime) { showToast('Please select a date and time first.', 'error'); return; }
+  const confirmBooking = async () => {
+    if (!selectedSlot) { showToast('Please select a date and time first.', 'error'); return; }
     if (credits < 1) { showToast('You need at least 1 credit to book.', 'error'); return; }
-
-    const key = getKey(year, month, selectedDay);
-    setBookedSlots(prev => ({ ...prev, [key]: [...(prev[key] || []), selectedTime] }));
-    addCredits(-1);
-    showToast(`Booked! ${selectedDay} ${MONTHS[month]} · ${selectedTime} — Confirmation email sent!`, 'success');
-    setSelectedDay(null); setSelectedTime(null);
+    setBusy(true);
+    const { error } = await supabase.rpc('book_lesson', { p_starts_at: selectedSlot, p_subject: subject });
+    setBusy(false);
+    if (error) {
+      showToast(error.message, 'error');
+      loadSlots();             // the slot may have just been taken
+      return;
+    }
+    const when = new Date(selectedSlot);
+    showToast(`Booked! ${when.toLocaleDateString(undefined, { timeZone: tz, day: 'numeric', month: 'long' })} · ${timeIn(tz, when)}`, 'success');
+    setSelectedSlot(null); setSelectedDay(null);
+    refreshCredits(); loadSlots();
   };
 
-  const cells = buildCalendar();
-  const availableForSelected = selectedDay ? slotsForDay(selectedDay) : [];
+  const daySlots = selectedDay ? (slotsByDay[selectedDay] || []) : [];
+  const selectedLabel = selectedSlot
+    ? `${new Date(selectedSlot).toLocaleDateString(undefined, { timeZone: tz, weekday: 'short', day: 'numeric', month: 'long' })} · ${timeIn(tz, new Date(selectedSlot))}`
+    : null;
 
   return (
     <>
       <DashHeader title="Book a Lesson" />
       <div className="dash-main">
-        {/* Credit banner */}
         <div style={{ background: 'rgba(212,96,138,.06)', border: '1px solid rgba(212,96,138,.15)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: '.85rem', color: 'var(--navy)', fontWeight: 500 }}>🎟 You have <strong>{credits}</strong> credits</span>
           <span style={{ fontSize: '.78rem', color: 'var(--ink-muted)' }}>· 1 credit = 1 × 45-min lesson</span>
           <button className="btn btn-outline btn-sm" style={{ marginLeft: 'auto' }} onClick={onBuyCredits}>Buy more</button>
         </div>
 
+        <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 12 }}>
+          🌍 Times shown in <strong>{tz.replace(/_/g, ' ')}</strong> (your time zone)
+        </p>
+
         <div className="booking-flow">
-          {/* Calendar */}
           <div className="card card-pad">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               <button className="btn btn-ghost btn-sm" disabled={isCurrentMonth} onClick={() => changeMonth(-1)}>← Prev</button>
-              <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, color: 'var(--navy)' }}>
-                {MONTHS[month]} {year}
-              </h3>
+              <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, color: 'var(--navy)' }}>{MONTHS[month]} {year}</h3>
               <button className="btn btn-ghost btn-sm" onClick={() => changeMonth(1)}>Next →</button>
             </div>
             <div className="cal-grid">
-              {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
-                <div key={d} className="cal-day-name">{d}</div>
-              ))}
-              {cells.map((cell) => {
-                if (cell.empty) return <div key={cell.key} />;
+              {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <div key={d} className="cal-day-name">{d}</div>)}
+              {Array.from({ length: firstDow }, (_, i) => <div key={`e${i}`} />)}
+              {Array.from({ length: daysInMonth }, (_, i) => {
+                const d = i + 1;
+                const key = keyFor(d);
+                const open = (slotsByDay[key] || []).length > 0;
                 let cls = 'cal-day';
-                if (cell.inactive) cls += ' inactive';
-                else if (cell.booked) cls += ' booked';
-                else {
-                  cls += ' has-slots';
-                  if (cell.d === selectedDay) cls += ' selected';
-                }
+                if (!open) cls += " inactive";
+                else { cls += ' has-slots'; if (key === selectedDay) cls += ' selected'; }
                 return (
-                  <button
-                    type="button"
-                    key={cell.d}
-                    className={cls}
-                    disabled={cell.inactive || cell.booked}
-                    aria-pressed={cell.d === selectedDay}
-                    onClick={() => { setSelectedDay(cell.d); setSelectedTime(null); }}
-                  >
-                    {cell.d}
+                  <button type="button" key={d} className={cls} disabled={!open} aria-pressed={key === selectedDay}
+                    onClick={() => { setSelectedDay(key); setSelectedSlot(null); }}>
+                    {d}
                   </button>
                 );
               })}
             </div>
+            {!loading && slots.length === 0 && (
+              <p style={{ fontSize: '.8rem', color: 'var(--ink-muted)', marginTop: 12 }}>No open times this month.</p>
+            )}
           </div>
 
-          {/* Time + form */}
           <div className="card card-pad">
             <div className="card-title" style={{ marginBottom: 14 }}>
-              {selectedDay ? `Available times — ${selectedDay} ${MONTHS[month]}` : 'Pick a Time'}
+              {selectedDay ? `Available times — ${new Date(selectedDay + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}` : 'Pick a Time'}
             </div>
             {selectedDay ? (
               <div className="slots-grid" style={{ marginBottom: 20 }}>
-                {ALL_SLOTS.map(t => {
-                  const isBooked = !availableForSelected.includes(t);
-                  let cls = 'time-slot' + (isBooked ? ' booked' : '') + (selectedTime === t ? ' selected' : '');
+                {daySlots.map(d => {
+                  const iso = d.toISOString();
                   return (
-                    <button key={t} className={cls} disabled={isBooked} onClick={() => setSelectedTime(t)}>{t}</button>
+                    <button key={iso} className={'time-slot' + (selectedSlot === iso ? ' selected' : '')} onClick={() => setSelectedSlot(iso)}>
+                      {timeIn(tz, d)}
+                    </button>
                   );
                 })}
               </div>
             ) : (
-              <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)', marginBottom: 20 }}>Select a date first.</p>
+              <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)', marginBottom: 20 }}>{loading ? 'Loading times…' : 'Select a date first.'}</p>
             )}
 
             <div className="form-group">
               <label>Subject</label>
               <select value={subject} onChange={e => setSubject(e.target.value)}>
-                <option>Conversational English</option>
-                <option>IELTS Preparation</option>
-                <option>Business English</option>
-                <option>Grammar Focus</option>
+                {SUBJECTS.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
 
-            {selectedDay && selectedTime && (
+            {selectedLabel && (
               <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 16, fontSize: '.85rem', color: 'var(--ink-soft)' }}>
-                <strong>📅 {selectedDay} {MONTHS[month]} · {selectedTime}</strong><br />
+                <strong>📅 {selectedLabel}</strong><br />
                 📘 {subject}<br />
                 🎥 Google Meet link sent on confirmation
               </div>
             )}
 
-            <button className="btn btn-primary btn-full" onClick={confirmBooking}>
-              Confirm Booking — 1 Credit
+            <button className="btn btn-primary btn-full" disabled={busy || !selectedSlot} onClick={confirmBooking}>
+              {busy ? 'Booking…' : 'Confirm Booking — 1 Credit'}
             </button>
           </div>
         </div>

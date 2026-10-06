@@ -15,12 +15,9 @@ npm run dev
 
 ```
 
-## Demo Accounts
+## Setup
 
-| Role    | Email                   | Password   |
-|---------|-------------------------|------------|
-| Student | sofia@demo.com          | pass123    |
-| Tutor   | neelien@admin.com       | admin123   |
+Copy `.env.example` to `.env.local` and fill in your Supabase anon key. Run `supabase/migrations/*.sql` in the Supabase SQL editor.
 
 ## Project Structure
 

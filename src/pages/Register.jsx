@@ -9,10 +9,15 @@ export default function Register() {
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const [busy, setBusy] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.first || !form.last || !form.email || !form.pass) return;
-    if (register(form.first, form.last, form.email, form.pass)) navigate('/dashboard');
+    setBusy(true);
+    const res = await register(form.first, form.last, form.email, form.pass, form.country);
+    setBusy(false);
+    if (res.ok) navigate(res.needsConfirmation ? '/login' : '/dashboard');
   };
 
   return (
@@ -39,7 +44,7 @@ export default function Register() {
               {['South Africa','Netherlands','Sweden','Japan','Germany','France','Brazil','UAE','Other'].map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
-          <button type="submit" className="btn btn-primary btn-full">🌸 Create Account</button>
+          <button type="submit" className="btn btn-primary btn-full" disabled={busy}>{busy ? 'Creating…' : '🌸 Create Account'}</button>
         </form>
 
         <div className="auth-footer">

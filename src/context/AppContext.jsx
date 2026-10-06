@@ -1,25 +1,43 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { USERS, getGreeting } from '../data/constants';
+import { supabase } from '../lib/supabase';
+import { getGreeting } from '../data/constants';
 
 const AppContext = createContext(null);
-const STORAGE_KEY = 'bb_user';
 
-function loadUser() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+const browserTimezone = () => {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; } catch { return 'UTC'; }
+};
+
+const initialsOf = (name) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+
+// Combine the auth user, their profile row and their credit balance into the shape the UI uses.
+async function loadCurrentUser(authUser) {
+  const [{ data: profile }, { data: credits }] = await Promise.all([
+    supabase.from('profiles').select('full_name, role, country, timezone').eq('id', authUser.id).single(),
+    supabase.rpc('my_credits'),
+  ]);
+  const name = profile?.full_name || authUser.email;
+  const role = profile?.role ?? 'student';
+  return {
+    id: authUser.id,
+    email: authUser.email,
+    name,
+    initials: initialsOf(name),
+    role,
+    color: role === 'admin' ? '#C07BA8' : '#D4608A',
+    country: profile?.country ?? null,
+    timezone: profile?.timezone && profile.timezone !== 'UTC' ? profile.timezone : browserTimezone(),
+    credits: credits ?? 0,
+  };
 }
 
 export function AppProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(loadUser);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [toast, setToast] = useState({ msg: '', type: '', visible: false });
   const [modal, setModal] = useState({ open: false, title: '', content: null });
   const toastTimer = useRef(null);
-
-  useEffect(() => {
-    try {
-      if (currentUser) { const { pass, ...safe } = currentUser; localStorage.setItem(STORAGE_KEY, JSON.stringify(safe)); }
-      else localStorage.removeItem(STORAGE_KEY);
-    } catch { /* storage unavailable */ }
-  }, [currentUser]);
 
   // ── Toast ──
   const showToast = useCallback((msg, type = 'info') => {
@@ -36,58 +54,82 @@ export function AppProvider({ children }) {
     setModal(m => ({ ...m, open: false }));
   }, []);
 
-  // ── Auth ──
-  const login = useCallback((email, pass) => {
-    const user = USERS.find(u => u.email === email.trim().toLowerCase() && u.pass === pass);
-    if (!user) {
-      const emailExists = USERS.find(u => u.email === email.trim().toLowerCase());
-      showToast(emailExists ? 'Incorrect password.' : `No account found for ${email}`, 'error');
+  // ── Auth: follow the Supabase session ──
+  useEffect(() => {
+    let active = true;
+    const apply = async (session) => {
+      if (!session?.user) { if (active) { setCurrentUser(null); setAuthLoading(false); } return; }
+      try {
+        const user = await loadCurrentUser(session.user);
+        if (active) setCurrentUser(user);
+      } catch {
+        if (active) setCurrentUser(null);
+      } finally {
+        if (active) setAuthLoading(false);
+      }
+    };
+    supabase.auth.getSession().then(({ data }) => apply(data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      // defer: Supabase forbids awaiting other Supabase calls inside this callback
+      setTimeout(() => apply(session), 0);
+    });
+    return () => { active = false; sub.subscription.unsubscribe(); };
+  }, []);
+
+  const refreshCredits = useCallback(async () => {
+    const { data } = await supabase.rpc('my_credits');
+    if (typeof data === 'number') setCurrentUser(u => (u ? { ...u, credits: data } : u));
+  }, []);
+
+  const login = useCallback(async (email, pass) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: pass });
+    if (error) {
+      showToast(error.message === 'Invalid login credentials' ? 'Incorrect email or password.' : error.message, 'error');
       return false;
     }
-    setCurrentUser({ ...user }); // copy so credits can be mutated
-    const greeting = getGreeting();
-    showToast(`${greeting}, ${user.name.split(' ')[0]}! 🌸`, 'success');
+    const first = (data.user.user_metadata?.full_name || '').split(' ')[0];
+    showToast(`${getGreeting()}${first ? ', ' + first : ''}! 🌸`, 'success');
     return true;
   }, [showToast]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
     showToast('You have been signed out.', 'info');
   }, [showToast]);
 
-  const register = useCallback((first, last, email, pass) => {
-    email = email.trim().toLowerCase();
-    if (USERS.some(u => u.email === email)) {
-      showToast('An account with that email already exists.', 'error');
-      return null;
+  const register = useCallback(async (first, last, email, pass, country) => {
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password: pass,
+      options: { data: { full_name: `${first} ${last}`.trim(), country: country || null } },
+    });
+    if (error) { showToast(error.message, 'error'); return { ok: false }; }
+    if (!data.session) {
+      // Email confirmation is on: the account exists but needs verifying first.
+      showToast('Check your email to confirm your account, then sign in. 🌸', 'success');
+      return { ok: true, needsConfirmation: true };
     }
-    const user = {
-      email, role: 'student',
-      name: `${first} ${last}`,
-      initials: (first[0] + (last[0] || '')).toUpperCase(),
-      color: '#D4608A',
-      credits: 0,
-    };
-    setCurrentUser(user);
+    // Save the student's timezone so lesson times display correctly everywhere.
+    await supabase.from('profiles').update({ timezone: browserTimezone() }).eq('id', data.user.id);
     showToast('Account created! Buy your first credits to get started. 🌸', 'success');
-    return user;
+    return { ok: true, needsConfirmation: false };
   }, [showToast]);
 
-  const addCredits = useCallback((n) => {
-    setCurrentUser(u => u ? { ...u, credits: (u.credits || 0) + n } : u);
-  }, []);
+  const setTimezone = useCallback(async (timezone) => {
+    if (!currentUser) return;
+    const { error } = await supabase.from('profiles').update({ timezone }).eq('id', currentUser.id);
+    if (error) { showToast('Could not save your time zone.', 'error'); return; }
+    setCurrentUser(u => ({ ...u, timezone }));
+  }, [currentUser, showToast]);
 
   const value = useMemo(() => ({
-    currentUser, login, logout, register, addCredits,
+    currentUser, authLoading, login, logout, register, refreshCredits, setTimezone,
     toast, showToast,
     modal, openModal, closeModal,
-  }), [currentUser, login, logout, register, addCredits, toast, showToast, modal, openModal, closeModal]);
+  }), [currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, toast, showToast, modal, openModal, closeModal]);
 
-  return (
-    <AppContext.Provider value={value}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {

@@ -26,8 +26,8 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
   const isAdmin = currentUser?.role === 'admin';
   const nav = isAdmin ? ADMIN_NAV : STUDENT_NAV;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 

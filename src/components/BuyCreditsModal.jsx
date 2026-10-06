@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { PACKS, packPrice, packPerCredit } from '../data/constants';
 
 export default function BuyCreditsModal({ onClose }) {
-  const { addCredits, showToast } = useApp();
+  const { showToast } = useApp();
   const [selected, setSelected] = useState('B');
   const [method, setMethod] = useState('stripe');
   const rate = 12;
@@ -14,8 +14,8 @@ export default function BuyCreditsModal({ onClose }) {
   const saved = Math.round(rate * pack.credits * pack.discount);
 
   const complete = () => {
-    addCredits(pack.credits);
-    showToast(`${pack.credits} credits added! Invoice sent.`, 'success');
+    // TODO(payments): create an order via create_order(), then redirect to Stripe Checkout.
+    showToast('Online payments are being set up — please contact Neeliën to buy credits for now.', 'info');
     onClose();
   };
 
