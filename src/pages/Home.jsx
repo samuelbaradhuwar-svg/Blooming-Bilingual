@@ -100,7 +100,10 @@ export default function Home() {
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} The Blooming Bilingual · Neeliën Van Rooyen</span>
-          <span>Stripe · PayFast · Google Meet</span>
+          <span style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <a onClick={() => navigate('/privacy')} style={{ cursor: 'pointer' }}>Privacy</a>
+            <a onClick={() => navigate('/terms')} style={{ cursor: 'pointer' }}>Terms</a>
+          </span>
         </div>
       </footer>
     </>
