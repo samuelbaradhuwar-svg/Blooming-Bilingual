@@ -164,18 +164,19 @@ returns integer language sql stable security definer set search_path = public as
 $$;
 
 -- ───────────────────────────── Availability ─────────────────────────────
--- Weekly pattern in the tutor's local time. weekday: 0 = Sunday … 6 = Saturday.
+-- Weekly pattern in the tutor's local time. weekday = the WORKING day: 0 = Sunday … 6 = Saturday.
+-- A start_time before 06:00 belongs to the working day that began the previous
+-- calendar day, i.e. Monday's 00:00 slot happens just after midnight on Tuesday.
 create table public.availability_rules (
   id          bigint generated always as identity primary key,
   weekday     smallint not null check (weekday between 0 and 6),
   start_time  time     not null,
   unique (weekday, start_time)
 );
--- Mon–Sat, hourly starts 16:00–23:00.
--- NOTE: the old UI also offered 00:00; that is "midnight at the end of the day", which
--- needs a rule on the NEXT weekday at 00:00. Add rows here if Neeliën offers it.
+-- Neeliën works 09:00–01:00, Mon–Sat. Hourly starts 09:00 … 23:00 plus 00:00
+-- (the 00:00 lesson runs 00:00–00:45, finishing before 01:00).
 insert into public.availability_rules (weekday, start_time)
-select d, make_time(h, 0, 0) from generate_series(1, 6) d, generate_series(16, 23) h;
+select d, make_time(h, 0, 0) from generate_series(1, 6) d, unnest(array[9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0]) h;
 
 create table public.availability_exceptions (
   day     date primary key,        -- a date in the tutor's timezone with no lessons
@@ -285,10 +286,10 @@ language sql stable security definer set search_path = public as $$
   days as (
     select d::date as day
     from cfg,
-         generate_series((p_from at time zone cfg.tz)::date, (p_to at time zone cfg.tz)::date, interval '1 day') d
+         generate_series((p_from at time zone cfg.tz)::date - 1, (p_to at time zone cfg.tz)::date, interval '1 day') d  -- -1: after-midnight slots of the previous working day
   ),
   candidates as (
-    select ((days.day + r.start_time) at time zone cfg.tz) as s
+    select ((days.day + r.start_time + case when r.start_time < time '06:00' then interval '1 day' else interval '0' end) at time zone cfg.tz) as s
     from days
     cross join cfg
     join public.availability_rules r on r.weekday = extract(dow from days.day)::int
@@ -510,4 +511,4 @@ create policy resources_obj_delete on storage.objects for delete to authenticate
 -- ═════════════════════════════ After deploying ═════════════════════════════
 -- 1. Neeliën signs up normally, then run once in the Supabase SQL editor:
 --      update public.profiles set role = 'admin' where id = (select id from auth.users where email = '<her email>');
--- 2. Confirm settings.tutor_timezone and availability_rules match her real hours.
+-- 2. Confirm settings.tutor_timezone (currently a guess) — hours are already 09:00–01:00 Mon–Sat.
