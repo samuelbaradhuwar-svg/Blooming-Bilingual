@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { dateKeyIn } from '../../../lib/time';
+import GoogleConnect from './GoogleConnect';
 import { supabase } from '../../../lib/supabase';
 
 // Working days run Mon–Sun; hours 09:00 … 23:00 then 00:00 (after midnight).
@@ -80,6 +81,7 @@ export default function AdminSchedule() {
     <>
       <DashHeader title="Hours & leave" />
       <div className="dash-main">
+        <GoogleConnect />
         <div className="card card-pad" style={{ marginBottom: 16 }}>
           <div className="card-title" style={{ marginBottom: 4 }}>Weekly hours</div>
           <p style={{ fontSize: '.8rem', color: 'var(--ink-muted)', marginBottom: 14 }}>
