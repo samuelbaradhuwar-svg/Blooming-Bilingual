@@ -87,6 +87,8 @@ export function AppProvider({ children }) {
       showToast(error.message === 'Invalid login credentials' ? 'Incorrect email or password.' : error.message, 'error');
       return false;
     }
+    // Load the profile now so the dashboard route is ready the moment we navigate.
+    setCurrentUser(await loadCurrentUser(data.user));
     const first = (data.user.user_metadata?.full_name || '').split(' ')[0];
     showToast(`${getGreeting()}${first ? ', ' + first : ''}! 🌸`, 'success');
     return true;
@@ -112,6 +114,7 @@ export function AppProvider({ children }) {
     }
     // Save the student's timezone so lesson times display correctly everywhere.
     await supabase.from('profiles').update({ timezone: browserTimezone() }).eq('id', data.user.id);
+    setCurrentUser(await loadCurrentUser(data.user));
     showToast('Account created! Buy your first credits to get started. 🌸', 'success');
     return { ok: true, needsConfirmation: false };
   }, [showToast]);
