@@ -61,7 +61,7 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
             </div>
             <div style={{ fontSize: '.66rem', opacity: .6, margin: '1px 0 8px' }}>credits · 45 min each</div>
             <div style={{ height: 4, borderRadius: 10, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(((currentUser?.credits || 0) / 14) * 100, 100)}%`, background: '#E8829F', borderRadius: 10 }} />
+              <div style={{ height: '100%', width: `${Math.min(((currentUser?.credits || 0) / 8) * 100, 100)}%`, background: '#E8829F', borderRadius: 10 }} />
             </div>
           </div>
         )}

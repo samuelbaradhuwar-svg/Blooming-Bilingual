@@ -1,23 +1,55 @@
 import { useEffect, useState } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
-import { longDateIn, timeIn } from '../../../lib/time';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { getGreeting } from '../../../data/constants';
+import { longDateIn, timeIn } from '../../../lib/time';
+
+const SKILLS = [
+  ['grammar', 'Grammar', 'var(--blue)'],
+  ['vocabulary', 'Vocabulary', '#E8829F'],
+  ['speaking', 'Speaking', 'var(--purple)'],
+  ['writing', 'Writing', 'var(--green)'],
+];
 
 export default function StudentHome({ onSwitch, onBuyCredits }) {
-  const { currentUser, showToast } = useApp();
+  const { currentUser } = useApp();
   const greeting = getGreeting();
   const name = currentUser?.name?.split(' ')[0] ?? 'there';
   const tz = currentUser?.timezone || 'UTC';
-  const [next, setNext] = useState(undefined); // undefined = loading, null = none
+  const [d, setD] = useState(null);
 
   useEffect(() => {
-    supabase.from('bookings').select('id, starts_at, subject, meet_url')
-      .eq('status', 'confirmed').gt('ends_at', new Date().toISOString())
-      .order('starts_at').limit(1)
-      .then(({ data }) => setNext(data?.[0] ?? null));
+    (async () => {
+      const nowIso = new Date().toISOString();
+      const [next, upcomingN, doneN, notes, resCount, resList] = await Promise.all([
+        supabase.from('bookings').select('id, starts_at, subject, meet_url')
+          .eq('status', 'confirmed').gt('ends_at', nowIso).order('starts_at').limit(1),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'confirmed').gt('ends_at', nowIso),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }).in('status', ['confirmed', 'completed']).lt('ends_at', nowIso),
+        supabase.from('lesson_notes').select('level, scores, created_at').order('created_at', { ascending: false }).limit(10),
+        supabase.from('resources').select('id', { count: 'exact', head: true }),
+        supabase.from('resources').select('id, title, category, external_url').order('created_at', { ascending: false }).limit(3),
+      ]);
+      const rows = notes.data || [];
+      setD({
+        next: next.data?.[0] ?? null,
+        upcoming: upcomingN.count ?? 0,
+        done: doneN.count ?? 0,
+        level: rows.find(r => r.level)?.level ?? null,
+        scores: rows.find(r => r.scores && Object.keys(r.scores).length)?.scores ?? null,
+        resourceCount: resCount.count ?? 0,
+        resources: resList.data ?? [],
+      });
+    })();
   }, []);
+
+  const stats = [
+    { icon: '🎓', bg: 'rgba(212,96,138,.08)', num: d?.done ?? '–', label: 'Lessons completed' },
+    { icon: '📅', bg: 'var(--orange-bg)', num: d?.upcoming ?? '–', label: 'Upcoming lessons' },
+    { icon: '📈', bg: 'var(--green-bg)', num: d ? (d.level ?? '—') : '–', label: 'Current level' },
+    { icon: '📁', bg: 'var(--purple-bg)', num: d?.resourceCount ?? '–', label: 'Resources', go: 'resources' },
+  ];
 
   return (
     <>
@@ -26,106 +58,81 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
       </DashHeader>
 
       <div className="dash-main">
-        {/* Stats */}
         <div className="dash-grid-4" style={{ marginBottom: 16 }}>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: 'rgba(212,96,138,.08)' }}>🎓</div>
-            <div className="stat-num">12</div>
-            <div className="stat-label">Lessons completed</div>
-            <div className="stat-trend up">↑ 4 this month</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: 'var(--green-bg)' }}>📈</div>
-            <div className="stat-num">B2</div>
-            <div className="stat-label">Current level</div>
-            <div className="stat-trend up">↑ From B1</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon" style={{ background: 'var(--orange-bg)' }}>🔥</div>
-            <div className="stat-num">14</div>
-            <div className="stat-label">Day streak</div>
-            <div className="stat-trend up">Personal best!</div>
-          </div>
-          <div className="stat-card" onClick={() => onSwitch('resources')} style={{ cursor: 'pointer' }}>
-            <div className="stat-icon" style={{ background: 'var(--purple-bg)' }}>📁</div>
-            <div className="stat-num">9</div>
-            <div className="stat-label">Resources</div>
-            <div className="stat-trend up">↑ 2 new files</div>
-          </div>
+          {stats.map(s => (
+            <div key={s.label} className="stat-card" onClick={s.go ? () => onSwitch(s.go) : undefined} style={s.go ? { cursor: 'pointer' } : undefined}>
+              <div className="stat-icon" style={{ background: s.bg }}>{s.icon}</div>
+              <div className="stat-num">{s.num}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
         </div>
 
-        {/* Main grid */}
         <div className="dash-grid">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Upcoming lesson */}
             <div className="card card-pad">
               <div className="card-header">
                 <span className="card-title">📅 Upcoming Lesson</span>
                 <button className="card-link" onClick={() => onSwitch('booking')}>Book more</button>
               </div>
-              {next ? (
-                <div style={{ background: 'linear-gradient(130deg,var(--navy),#6B2045)', borderRadius: 'var(--radius-sm)', padding: 16, color: 'white', marginBottom: 10 }}>
-                  <div style={{ fontSize: '.65rem', fontWeight: 700, textTransform: 'uppercase', opacity: .6, marginBottom: 4 }}>
-                    Next · {longDateIn(tz, new Date(next.starts_at))} {timeIn(tz, new Date(next.starts_at))}
+              {d?.next ? (
+                <>
+                  <div style={{ background: 'linear-gradient(130deg,var(--navy),#6B2045)', borderRadius: 'var(--radius-sm)', padding: 16, color: 'white', marginBottom: 10 }}>
+                    <div style={{ fontSize: '.65rem', fontWeight: 700, textTransform: 'uppercase', opacity: .6, marginBottom: 4 }}>
+                      Next · {longDateIn(tz, new Date(d.next.starts_at))} {timeIn(tz, new Date(d.next.starts_at))}
+                    </div>
+                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1rem', fontWeight: 600, marginBottom: 10 }}>{d.next.subject}</div>
+                    {d.next.meet_url
+                      ? <a className="join-btn" href={d.next.meet_url} target="_blank" rel="noreferrer">🎥 Join Lesson</a>
+                      : <button className="join-btn" onClick={() => onSwitch('lessons')}>View details</button>}
                   </div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1rem', fontWeight: 600, marginBottom: 10 }}>{next.subject}</div>
-                  {next.meet_url
-                    ? <a className="join-btn" href={next.meet_url} target="_blank" rel="noreferrer">🎥 Join Lesson</a>
-                    : <button className="join-btn" onClick={() => onSwitch('lessons')}>View details</button>}
-                </div>
+                  <div style={{ fontSize: '.78rem', color: 'var(--ink-muted)', padding: '8px 0' }}>
+                    Move or cancel up to 2 hours before and your credit is kept or refunded.
+                  </div>
+                </>
               ) : (
-                <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: 16, marginBottom: 10, fontSize: '.85rem', color: 'var(--ink-soft)' }}>
-                  {next === undefined ? 'Loading…' : 'No lessons booked yet.'}
+                <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: 16, fontSize: '.85rem', color: 'var(--ink-soft)' }}>
+                  {d ? (
+                    <>
+                      No lessons booked yet.{' '}
+                      <button className="card-link" onClick={() => onSwitch('booking')}>Book your first lesson →</button>
+                    </>
+                  ) : 'Loading…'}
                 </div>
               )}
-              <div style={{ fontSize: '.78rem', color: 'var(--ink-muted)', padding: '8px 0' }}>
-                🎟 1 credit will be used · Reschedule free if &gt;2hrs before
-              </div>
             </div>
 
-            {/* Recent resources */}
             <div className="card card-pad">
               <div className="card-header">
                 <span className="card-title">📁 Recent Resources</span>
                 <button className="card-link" onClick={() => onSwitch('resources')}>View all</button>
               </div>
-              {[
-                { icon: '📄', bg: '#FEE2E2', title: 'Grammar Reference Guide', meta: 'PDF · Added by Neeliën' },
-                { icon: '📘', bg: 'rgba(212,96,138,.08)', title: 'IELTS Writing Samples', meta: 'PDF · Added by Neeliën' },
-              ].map(r => (
-                <div key={r.title} className="hw-item">
-                  <div className="hw-icon" style={{ background: r.bg }}>{r.icon}</div>
-                  <div className="hw-info"><strong>{r.title}</strong><span>{r.meta}</span></div>
-                  <button className="btn btn-ghost btn-sm" onClick={() => showToast('Download started.', 'info')}>↓</button>
-                </div>
-              ))}
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border-soft)' }}>
-                <button className="btn btn-outline btn-sm btn-full" onClick={() => onSwitch('resources')}>
-                  + Upload a file for Neeliën
-                </button>
-              </div>
+              {!d ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
+                : d.resources.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No resources yet. Neeliën will share study material here.</p>
+                : d.resources.map(r => (
+                  <div key={r.id} className="hw-item">
+                    <div className="hw-info"><strong>{r.title}</strong><span>{r.category || 'Resource'}</span></div>
+                    {r.external_url && <a className="btn btn-ghost btn-sm" href={r.external_url} target="_blank" rel="noreferrer">Open</a>}
+                  </div>
+                ))}
             </div>
           </div>
 
-          {/* Right col */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {/* Progress */}
             <div className="card card-pad">
               <div className="card-title" style={{ marginBottom: 14 }}>My Progress</div>
-              {[
-                { label: 'Grammar', pct: 78, color: 'var(--blue)' },
-                { label: 'Vocabulary', pct: 65, color: '#E8829F' },
-                { label: 'Speaking', pct: 55, color: 'var(--purple)' },
-                { label: 'Writing', pct: 82, color: 'var(--green)' },
-              ].map(p => (
-                <div key={p.label} className="prog-item">
-                  <div className="prog-header"><strong>{p.label}</strong><span>{p.pct}%</span></div>
-                  <div className="prog-bar"><div className="prog-fill" style={{ width: `${p.pct}%`, background: p.color }} /></div>
+              {d?.scores ? SKILLS.filter(([k]) => typeof d.scores[k] === 'number').map(([k, label, color]) => (
+                <div key={k} className="prog-item">
+                  <div className="prog-header"><strong>{label}</strong><span>{d.scores[k]}%</span></div>
+                  <div className="prog-bar"><div className="prog-fill" style={{ width: `${d.scores[k]}%`, background: color }} /></div>
                 </div>
-              ))}
+              )) : (
+                <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>
+                  {d ? 'Your progress will appear here after your first lessons with Neeliën.' : 'Loading…'}
+                </p>
+              )}
             </div>
 
-            {/* Credits */}
             <div className="card card-pad" style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2.5rem', fontWeight: 700, color: 'var(--navy)' }}>
                 {currentUser?.credits ?? 0}
