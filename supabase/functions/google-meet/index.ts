@@ -82,7 +82,11 @@ async function accessToken(): Promise<string> {
     }),
   });
   const tok = await res.json();
-  if (!res.ok) throw new Error(`Google refused the saved connection (${tok.error}). Reconnect Google in the tutor dashboard.`);
+  if (!res.ok) {
+    const why = `${tok.error ?? 'unknown'}${tok.error_description ? ': ' + tok.error_description : ''}`;
+    console.error('Google token refresh failed:', why, `(client id set: ${!!GOOGLE_CLIENT_ID}, client secret set: ${!!GOOGLE_CLIENT_SECRET})`);
+    throw new Error(`Google refused the saved connection (${why}). Reconnect Google in the tutor dashboard.`);
+  }
   return tok.access_token;
 }
 
