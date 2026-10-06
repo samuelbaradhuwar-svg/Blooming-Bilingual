@@ -60,7 +60,7 @@ create or replace function public.admin_disconnect_google()
 returns void language plpgsql security definer set search_path = public as $$
 begin
   if not public.is_admin() then raise exception 'Not allowed' using errcode = '42501'; end if;
-  delete from public.google_credentials;
+  delete from public.google_credentials where id = 1;
 end $$;
 
 -- ───────── Tell the Edge Function about a booking ─────────
