@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 const HIGHLIGHTS = [
   { icon: '🌸', title: 'Meet Neeliën', desc: 'TEFL-certified English tutor from South Africa. Learn about her background and teaching style.', path: '/about' },
   { icon: '🎓', title: 'What I Teach', desc: 'Conversational English, exam prep, business English, homework support & more.', path: '/services' },
-  { icon: '🎟', title: 'Credits & Pricing', desc: '1 credit = 1 lesson of 45 min. Buy 1–28 credits from €9/credit. Credits never expire.', path: '/pricing' },
+  { icon: '🎟', title: 'Credits & Pricing', desc: '1 credit = 1 lesson of 45 min. Buy 1–28 credits from $9/credit. Credits never expire.', path: '/pricing' },
   { icon: '✉️', title: 'Get in Touch', desc: 'Questions before starting? Send a message — Neeliën replies within 24 hours.', path: '/contact' },
 ];
 
@@ -26,7 +26,7 @@ export default function Home() {
               <button className="btn btn-ghost btn-lg" onClick={() => navigate('/login')}>Student Login →</button>
             </div>
             <div className="hero-stats">
-              {[['1:1','Private lessons'],['45min','Per lesson'],['Mon–Sat','Flexible times'],['€9–12','Per credit']].map(([v,l]) => (
+              {[['1:1','Private lessons'],['45min','Per lesson'],['Mon–Sat','Flexible times'],['$9–12','Per credit']].map(([v,l]) => (
                 <div key={l} className="hero-stat"><span>{v}</span><p>{l}</p></div>
               ))}
             </div>

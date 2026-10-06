@@ -442,3 +442,6 @@ img, video, svg { max-width: 100%; height: auto; display: block; }
 .legal ul { padding-left: 20px; margin-bottom: 12px; }
 .legal li { margin-bottom: 6px; }
 .legal a { color: var(--blue); font-weight: 500; }
+
+/* The serif font's old-style "1" looks like a capital I: use lining numerals everywhere */
+body { font-variant-numeric: lining-nums; }

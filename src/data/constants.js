@@ -29,3 +29,9 @@ export function getGreeting() {
   const h = new Date().getHours();
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
+
+// Prices are shown in US dollars. Change here (and the `currency` setting in the database) to switch currency.
+export const CURRENCY_SYMBOL = '$';
+export const CURRENCY_CODE = 'usd';
+export const formatMoney = (cents, decimals = 0) =>
+  `${CURRENCY_SYMBOL}${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;

@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
+import { formatMoney } from '../../../data/constants';
 
-const eur = (c) => `€${(c / 100).toFixed(2)}`;
+const eur = (c) => formatMoney(c, 2);
 
 export default function AdminBilling() {
   const { showToast } = useApp();

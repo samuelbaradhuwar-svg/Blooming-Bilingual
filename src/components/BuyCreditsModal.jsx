@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { PACKS, packPrice, packPerCredit } from '../data/constants';
+import { PACKS, CURRENCY_SYMBOL, packPrice, packPerCredit } from '../data/constants';
 
 export default function BuyCreditsModal({ onClose }) {
   const { showToast } = useApp();
@@ -50,9 +50,9 @@ export default function BuyCreditsModal({ onClose }) {
               <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.4rem', fontWeight: 700, color: 'var(--navy)' }}>
                 {p.credits} credit{p.credits > 1 ? 's' : ''}
               </div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--blue)', marginTop: 2 }}>€{pr}</div>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--blue)', marginTop: 2 }}>{CURRENCY_SYMBOL}{pr}</div>
               {p.discount > 0
-                ? <div style={{ fontSize: '.65rem', fontWeight: 600, color: 'var(--green)', background: 'var(--green-bg)', padding: '2px 6px', borderRadius: 50, display: 'inline-block', marginTop: 3 }}>Save €{sv}</div>
+                ? <div style={{ fontSize: '.65rem', fontWeight: 600, color: 'var(--green)', background: 'var(--green-bg)', padding: '2px 6px', borderRadius: 50, display: 'inline-block', marginTop: 3 }}>Save {CURRENCY_SYMBOL}{sv}</div>
                 : <div style={{ height: 18 }} />
               }
             </div>
@@ -62,7 +62,7 @@ export default function BuyCreditsModal({ onClose }) {
 
       {/* Summary */}
       <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', marginBottom: 16, fontSize: '.82rem', color: 'var(--ink-soft)' }}>
-        Selected: <strong>{pack.credits} credit{pack.credits > 1 ? 's' : ''}</strong> — €{price} (€{per}/credit{pack.discount > 0 ? ` · save €${saved}` : ''})
+        Selected: <strong>{pack.credits} credit{pack.credits > 1 ? 's' : ''}</strong> — {CURRENCY_SYMBOL}{price} ({CURRENCY_SYMBOL}{per}/credit{pack.discount > 0 ? ` · save ${CURRENCY_SYMBOL}${saved}` : ''})
       </div>
 
       {/* Payment */}

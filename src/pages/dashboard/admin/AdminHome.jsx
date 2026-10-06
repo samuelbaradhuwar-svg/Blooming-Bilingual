@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
-import { getGreeting } from '../../../data/constants';
+import { getGreeting, formatMoney } from '../../../data/constants';
 import { dateKeyIn, timeIn, shortDateIn } from '../../../lib/time';
 
-const eur = (cents) => `€${(cents / 100).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
 export default function AdminHome({ onSwitch }) {
   const { currentUser, showToast } = useApp();
@@ -40,7 +39,7 @@ export default function AdminHome({ onSwitch }) {
 
   const stats = data && [
     { icon: '👥', bg: 'rgba(212,96,138,.08)', num: data.students.length, label: 'Students', go: 'admin-students' },
-    { icon: '💰', bg: 'var(--green-bg)', num: eur(data.revenue), label: `Revenue · ${month}`, go: 'admin-billing' },
+    { icon: '💰', bg: 'var(--green-bg)', num: formatMoney(data.revenue), label: `Revenue · ${month}`, go: 'admin-billing' },
     { icon: '📅', bg: 'var(--orange-bg)', num: todays.length, label: 'Lessons today', go: 'admin-bookings' },
     { icon: '📝', bg: 'var(--red-bg)', num: data.toReview, label: 'Lessons to wrap up', go: 'admin-lessons' },
   ];

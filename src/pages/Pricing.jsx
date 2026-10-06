@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PACKS, packPrice, packPerCredit } from '../data/constants';
+import { PACKS, CURRENCY_SYMBOL, packPrice, packPerCredit } from '../data/constants';
 
 const RATE = 12;
 
@@ -8,7 +8,7 @@ const FAQS = [
   { q: 'Do credits expire?', a: 'No — credits never expire. Buy at your own pace and use them whenever you\'re ready.' },
   { q: 'How do I book after buying?', a: 'After purchase, your credits appear in your student dashboard. Go to "Book a Lesson", pick a date and time, and confirm — 1 credit is held.' },
   { q: 'What payment methods are accepted?', a: 'Stripe (international — Visa, Mastercard, and more) and PayFast for South African students.' },
-  { q: 'How many credits can I buy at once?', a: 'Between 1 and 28 at a time. Buying in bulk gives you a better per-credit rate — down to €9/credit for 28 credits.' },
+  { q: 'How many credits can I buy at once?', a: `Between 1 and 28 at a time. Buying in bulk gives you a better per-credit rate — down to ${CURRENCY_SYMBOL}9/credit for 28 credits.` },
 ];
 
 export default function Pricing() {
@@ -46,9 +46,9 @@ export default function Pricing() {
                   )}
                   <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2rem', fontWeight: 700, color: isFeat ? 'white' : 'var(--navy)' }}>{p.credits}</div>
                   <div style={{ fontSize: '.65rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.08em', color: isFeat ? 'rgba(255,255,255,.55)' : 'var(--ink-muted)', marginBottom: 10 }}>credit{p.credits > 1 ? 's' : ''}</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: isFeat ? '#E8829F' : 'var(--blue)' }}>€{price}</div>
-                  <div style={{ fontSize: '.7rem', color: isFeat ? 'rgba(255,255,255,.5)' : 'var(--ink-muted)', marginBottom: p.discount > 0 ? 4 : 18 }}>€{per}/credit</div>
-                  {p.discount > 0 && <div style={{ fontSize: '.65rem', fontWeight: 600, background: 'var(--green-bg)', color: 'var(--green)', padding: '2px 8px', borderRadius: 50, display: 'inline-block', marginBottom: 14 }}>Save €{saved}</div>}
+                  <div style={{ fontSize: '1.4rem', fontWeight: 700, color: isFeat ? '#E8829F' : 'var(--blue)' }}>{CURRENCY_SYMBOL}{price}</div>
+                  <div style={{ fontSize: '.7rem', color: isFeat ? 'rgba(255,255,255,.5)' : 'var(--ink-muted)', marginBottom: p.discount > 0 ? 4 : 18 }}>{CURRENCY_SYMBOL}{per}/credit</div>
+                  {p.discount > 0 && <div style={{ fontSize: '.65rem', fontWeight: 600, background: 'var(--green-bg)', color: 'var(--green)', padding: '2px 8px', borderRadius: 50, display: 'inline-block', marginBottom: 14 }}>Save {CURRENCY_SYMBOL}{saved}</div>}
                   {p.features.map(f => (
                     <div key={f} style={{ fontSize: '.72rem', color: isFeat ? 'rgba(255,255,255,.7)' : 'var(--ink-soft)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, textAlign: 'left' }}>
                       <span style={{ color: isFeat ? '#E8829F' : 'var(--green)' }}>✓</span>{f}
