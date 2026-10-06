@@ -36,7 +36,7 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
         next: next.data?.[0] ?? null,
         upcoming: upcomingN.count ?? 0,
         done: doneN.count ?? 0,
-        level: rows.find(r => r.level)?.level ?? null,
+        level: currentUser?.englishLevel ?? null,
         scores: rows.find(r => r.scores && Object.keys(r.scores).length)?.scores ?? null,
         resourceCount: resCount.count ?? 0,
         resources: resList.data ?? [],
@@ -86,6 +86,12 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
                       ? <a className="join-btn" href={d.next.meet_url} target="_blank" rel="noreferrer">🎥 Join Lesson</a>
                       : <button className="join-btn" onClick={() => onSwitch('lessons')}>View details</button>}
                   </div>
+                  {currentUser?.nextLessonFocus && (
+                    <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', fontSize: '.85rem', color: 'var(--ink-soft)', marginBottom: 8 }}>
+                      <strong style={{ display: 'block', fontSize: '.7rem', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--ink-muted)', marginBottom: 4 }}>Neeliën's plan for your next lesson</strong>
+                      {currentUser.nextLessonFocus}
+                    </div>
+                  )}
                   <div style={{ fontSize: '.78rem', color: 'var(--ink-muted)', padding: '8px 0' }}>
                     Move or cancel up to 2 hours before and your credit is kept or refunded.
                   </div>

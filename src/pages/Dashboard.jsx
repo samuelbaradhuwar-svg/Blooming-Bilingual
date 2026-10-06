@@ -11,6 +11,8 @@ import MyLessons from './dashboard/student/MyLessons';
 // Admin views
 import AdminHome from './dashboard/admin/AdminHome';
 import AdminStudents from './dashboard/admin/AdminStudents';
+import AdminStudentDetail from './dashboard/admin/AdminStudentDetail';
+import ResourcesView from './dashboard/ResourcesView';
 import AdminBookings from './dashboard/admin/AdminBookings';
 import AdminLessons from './dashboard/admin/AdminLessons';
 import AdminSchedule from './dashboard/admin/AdminSchedule';
@@ -43,7 +45,7 @@ export default function Dashboard() {
   const { currentUser, openModal, closeModal } = useApp();
   const isAdmin = currentUser?.role === 'admin';
   const navigate = useNavigate();
-  const { view } = useParams();
+  const { view, id } = useParams();
   const defaultView = isAdmin ? ADMIN_DEFAULT : STUDENT_DEFAULT;
   const activeView = view || defaultView;
 
@@ -59,10 +61,10 @@ export default function Dashboard() {
     if (isAdmin) {
       switch (activeView) {
         case 'admin-home':      return <AdminHome onSwitch={switchView} />;
-        case 'admin-students':  return <AdminStudents />;
+        case 'admin-students':  return id ? <AdminStudentDetail key={id} id={id} /> : <AdminStudents />;
         case 'admin-bookings':  return <AdminBookings />;
         case 'admin-lessons':   return <AdminLessons />;
-        case 'admin-resources': return <Placeholder title="Resources" />;
+        case 'admin-resources': return <ResourcesView admin />;
         case 'admin-billing':   return <AdminBilling />;
         case 'admin-settings':  return <AdminSchedule />;
         default:                return <AdminHome onSwitch={switchView} />;
@@ -74,7 +76,7 @@ export default function Dashboard() {
       case 'home':      return <StudentHome onSwitch={switchView} onBuyCredits={handleBuyCredits} />;
       case 'booking':   return <BookingView onBuyCredits={handleBuyCredits} />;
       case 'lessons':   return <MyLessons onSwitch={switchView} />;
-      case 'resources': return <Placeholder title="Resources" />;
+      case 'resources': return <ResourcesView />;
       case 'credits':   return <Placeholder title="Credits & Billing" />;
       case 'progress':  return <Placeholder title="My Progress" />;
       default:          return <StudentHome onSwitch={switchView} onBuyCredits={handleBuyCredits} />;

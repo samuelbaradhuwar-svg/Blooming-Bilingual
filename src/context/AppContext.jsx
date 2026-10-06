@@ -14,7 +14,7 @@ const initialsOf = (name) =>
 // Combine the auth user, their profile row and their credit balance into the shape the UI uses.
 async function loadCurrentUser(authUser) {
   const [{ data: profile }, { data: credits }] = await Promise.all([
-    supabase.from('profiles').select('full_name, role, country, timezone').eq('id', authUser.id).single(),
+    supabase.from('profiles').select('full_name, role, country, timezone, english_level, next_lesson_focus').eq('id', authUser.id).single(),
     supabase.rpc('my_credits'),
   ]);
   const name = profile?.full_name || authUser.email;
@@ -27,6 +27,8 @@ async function loadCurrentUser(authUser) {
     role,
     color: role === 'admin' ? '#C07BA8' : '#D4608A',
     country: profile?.country ?? null,
+    englishLevel: profile?.english_level ?? null,
+    nextLessonFocus: profile?.next_lesson_focus ?? null,
     timezone: profile?.timezone && profile.timezone !== 'UTC' ? profile.timezone : browserTimezone(),
     credits: credits ?? 0,
   };
