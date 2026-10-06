@@ -433,3 +433,4 @@ img, video, svg { max-width: 100%; height: auto; display: block; }
 
 /* Cormorant's default "1" looks like a capital I; use lining numerals for stats */
 .hero-stat span, .credit-amount, .stat-num { font-variant-numeric: lining-nums; }
+.sidebar-credit-widget div { font-variant-numeric: lining-nums; }
