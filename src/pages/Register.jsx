@@ -17,7 +17,7 @@ export default function Register() {
     setBusy(true);
     const res = await register(form.first, form.last, form.email, form.pass, form.country);
     setBusy(false);
-    if (res.ok) navigate(res.needsConfirmation ? '/login' : '/dashboard');
+    if (res.ok) navigate(res.needsConfirmation ? '/login' : '/dashboard', { replace: true });
   };
 
   return (

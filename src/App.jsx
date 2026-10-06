@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import { useApp } from './context/AppContext';
 import Toast from './components/ui/Toast';
 import Modal from './components/ui/Modal';
@@ -14,6 +14,13 @@ const Contact   = lazy(() => import('./pages/Contact'));
 const Login     = lazy(() => import('./pages/Login'));
 const Register  = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+
+// Signed-in users have no reason to see the login/register pages.
+function GuestOnly({ children }) {
+  const { currentUser, authLoading } = useApp();
+  if (authLoading) return null;
+  return currentUser ? <Navigate to="/dashboard" replace /> : children;
+}
 
 function NotFound() {
   return (
@@ -45,9 +52,9 @@ export default function App() {
           <Route path="/services"  element={<Services />} />
           <Route path="/pricing"   element={<Pricing />} />
           <Route path="/contact"   element={<Contact />} />
-          <Route path="/login"     element={<Login />} />
-          <Route path="/register"  element={<Register />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/login"     element={<GuestOnly><Login /></GuestOnly>} />
+          <Route path="/register"  element={<GuestOnly><Register /></GuestOnly>} />
+          <Route path="/dashboard/:view?" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="*"          element={<NotFound />} />
         </Routes>
       </Suspense>

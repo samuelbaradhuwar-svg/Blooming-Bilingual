@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import DashLayout from '../components/dashboard/DashLayout';
 import BuyCreditsModal from '../components/BuyCreditsModal';
@@ -42,13 +42,17 @@ const ADMIN_DEFAULT = 'admin-home';
 export default function Dashboard() {
   const { currentUser, openModal, closeModal } = useApp();
   const isAdmin = currentUser?.role === 'admin';
-  const [activeView, setActiveView] = useState(isAdmin ? ADMIN_DEFAULT : STUDENT_DEFAULT);
+  const navigate = useNavigate();
+  const { view } = useParams();
+  const defaultView = isAdmin ? ADMIN_DEFAULT : STUDENT_DEFAULT;
+  const activeView = view || defaultView;
 
   const handleBuyCredits = () => {
     openModal('🎟 Buy Lesson Credits', <BuyCreditsModal onClose={closeModal} />);
   };
 
-  const switchView = (view) => setActiveView(view);
+  // Each section has its own address (/dashboard/booking …) so the browser Back button works.
+  const switchView = (v) => navigate(v === defaultView ? '/dashboard' : `/dashboard/${v}`);
 
   const renderView = () => {
     // ── ADMIN VIEWS ──

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 export default function PublicNav() {
   const navigate = useNavigate();
+  const { currentUser } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const close = () => setMenuOpen(false);
@@ -16,7 +18,7 @@ export default function PublicNav() {
           <div className="nav-brand-name">The Blooming Bilingual</div>
         </div>
         <div className="nav-actions">
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/login')}>Student Login</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate(currentUser ? '/dashboard' : '/login')}>{currentUser ? 'My Dashboard' : 'Student Login'}</button>
           <button
             className={`burger-btn ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen(o => !o)}
@@ -61,12 +63,18 @@ export default function PublicNav() {
         <div className="menu-divider" />
 
         <div className="menu-cta">
-          <button className="btn btn-primary btn-full" style={{ marginBottom: 10 }} onClick={() => go('/register')}>
-            🌱 Create Account & Buy Credits
-          </button>
-          <button className="btn btn-ghost btn-full" onClick={() => go('/login')}>
-            Student Login →
-          </button>
+          {currentUser ? (
+            <button className="btn btn-primary btn-full" onClick={() => go('/dashboard')}>Go to my dashboard →</button>
+          ) : (
+            <>
+              <button className="btn btn-primary btn-full" style={{ marginBottom: 10 }} onClick={() => go('/register')}>
+                🌱 Create Account & Buy Credits
+              </button>
+              <button className="btn btn-ghost btn-full" onClick={() => go('/login')}>
+                Student Login →
+              </button>
+            </>
+          )}
         </div>
 
         <div className="menu-footer-note">

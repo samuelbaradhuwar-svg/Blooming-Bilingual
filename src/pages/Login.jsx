@@ -15,7 +15,7 @@ export default function Login() {
     setBusy(true);
     const ok = await login(email, pass);
     setBusy(false);
-    if (ok) navigate('/dashboard');
+    if (ok) navigate('/dashboard', { replace: true });
   };
 
   return (
