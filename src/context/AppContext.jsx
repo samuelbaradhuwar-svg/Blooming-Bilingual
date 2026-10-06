@@ -13,10 +13,14 @@ const initialsOf = (name) =>
 
 // Combine the auth user, their profile row and their credit balance into the shape the UI uses.
 async function loadCurrentUser(authUser) {
-  const [{ data: profile }, { data: credits }] = await Promise.all([
+  let [{ data: profile, error }, { data: credits }] = await Promise.all([
     supabase.from('profiles').select('full_name, role, country, timezone, english_level, next_lesson_focus').eq('id', authUser.id).single(),
     supabase.rpc('my_credits'),
   ]);
+  if (error) {
+    // The newer columns may not exist yet (database script not run): never lose the user's role over that.
+    ({ data: profile } = await supabase.from('profiles').select('full_name, role, country, timezone').eq('id', authUser.id).single());
+  }
   const name = profile?.full_name || authUser.email;
   const role = profile?.role ?? 'student';
   return {
