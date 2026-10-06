@@ -3,8 +3,9 @@
 //   GET  ?code=…&state=…   Google redirects the tutor here after she allows access (one time).
 //   POST {booking_id}      Called by the database when a booking is created, moved or cancelled.
 //
-// Secrets (Edge Functions → Secrets): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, WEBHOOK_SECRET, SITE_URL.
-// The function's own address is read from the database table app_secrets (key 'google_meet_url').
+// Secrets (Edge Functions → Secrets): GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SITE_URL.
+// The function's own address and the shared password are read from the database table app_secrets
+// (keys 'google_meet_url' and 'google_meet_secret').
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase automatically.
 // Deploy with "Verify JWT" OFF: Google and the database call it directly, and it checks its own secrets.
 
@@ -14,7 +15,6 @@ const env = (k: string) => Deno.env.get(k) ?? '';
 const SUPABASE_URL = env('SUPABASE_URL');
 const GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID');
 const GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET');
-const WEBHOOK_SECRET = env('WEBHOOK_SECRET');
 const SITE_URL = env('SITE_URL').replace(/\/$/, '');
 const CAL = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
 
@@ -102,16 +102,16 @@ async function gcal(token: string, method: string, path: string, body?: unknown)
 
 // ───────── booking events ─────────
 async function bookingEvent(req: Request) {
-  const expected = WEBHOOK_SECRET.trim();
+  // The shared password lives ONLY in the database (app_secrets: google_meet_secret), the same value
+  // the database sends, so the two can never disagree.
+  const { data: row } = await db.from('app_secrets').select('value').eq('key', 'google_meet_secret').maybeSingle();
+  const expected = (row?.value ?? '').trim();
   const received = (req.headers.get('x-webhook-secret') ?? '').trim();
   if (!expected) {
-    console.error('WEBHOOK_SECRET is not set on this function');
-    return json({ error: 'forbidden', reason: 'WEBHOOK_SECRET is not set on the function' }, 403);
+    console.error('google_meet_secret is not saved in app_secrets');
+    return json({ error: 'forbidden', reason: 'no secret is saved in the database' }, 403);
   }
-  if (received !== expected) {
-    console.error(`webhook secret mismatch (function has ${expected.length} characters, request sent ${received.length})`);
-    return json({ error: 'forbidden', reason: 'the secret does not match' }, 403);
-  }
+  if (received !== expected) return json({ error: 'forbidden', reason: 'the secret does not match' }, 403);
   const { booking_id } = await req.json();
   if (!booking_id) return json({ error: 'booking_id required' }, 400);
 
