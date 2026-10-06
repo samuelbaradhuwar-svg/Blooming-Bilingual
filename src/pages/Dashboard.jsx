@@ -10,6 +10,11 @@ import MyLessons from './dashboard/student/MyLessons';
 
 // Admin views
 import AdminHome from './dashboard/admin/AdminHome';
+import AdminStudents from './dashboard/admin/AdminStudents';
+import AdminBookings from './dashboard/admin/AdminBookings';
+import AdminLessons from './dashboard/admin/AdminLessons';
+import AdminSchedule from './dashboard/admin/AdminSchedule';
+import AdminBilling from './dashboard/admin/AdminBilling';
 
 // Placeholder for views not yet broken into separate files
 function Placeholder({ title }) {
@@ -50,12 +55,12 @@ export default function Dashboard() {
     if (isAdmin) {
       switch (activeView) {
         case 'admin-home':      return <AdminHome onSwitch={switchView} />;
-        case 'admin-students':  return <Placeholder title="Students" />;
-        case 'admin-bookings':  return <Placeholder title="Bookings" />;
-        case 'admin-lessons':   return <Placeholder title="Lesson Management" />;
+        case 'admin-students':  return <AdminStudents />;
+        case 'admin-bookings':  return <AdminBookings />;
+        case 'admin-lessons':   return <AdminLessons />;
         case 'admin-resources': return <Placeholder title="Resources" />;
-        case 'admin-billing':   return <Placeholder title="Invoices & Billing" />;
-        case 'admin-settings':  return <Placeholder title="Settings" />;
+        case 'admin-billing':   return <AdminBilling />;
+        case 'admin-settings':  return <AdminSchedule />;
         default:                return <AdminHome onSwitch={switchView} />;
       }
     }

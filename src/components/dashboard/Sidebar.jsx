@@ -17,7 +17,7 @@ const ADMIN_NAV = [
   { view: 'admin-lessons',   icon: '🎓', label: 'Lessons',     section: 'Content' },
   { view: 'admin-resources', icon: '📁', label: 'Resources' },
   { view: 'admin-billing',   icon: '💰', label: 'Invoices',    section: 'Finance' },
-  { view: 'admin-settings',  icon: '⚙️', label: 'Settings' },
+  { view: 'admin-settings',  icon: '⚙️', label: 'Hours & days off' },
 ];
 
 export default function Sidebar({ activeView, onSwitch, open, onClose }) {
