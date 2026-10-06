@@ -3,13 +3,9 @@ import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { MONTHS } from '../../../data/constants';
+import { pad, dateKeyIn, timeIn } from '../../../lib/time';
 
 const SUBJECTS = ['Conversational English', 'IELTS Preparation', 'Business English', 'Grammar Focus'];
-
-// Date key (YYYY-MM-DD) and clock time of an instant in the student's own time zone.
-const dateKeyIn = (tz, d) => new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-const timeIn = (tz, d) => new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(d);
-const pad = (n) => String(n).padStart(2, '0');
 
 export default function BookingView({ onBuyCredits }) {
   const { currentUser, refreshCredits, showToast } = useApp();

@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useApp } from '../../../context/AppContext';
+import { supabase } from '../../../lib/supabase';
+import { longDateIn, timeIn } from '../../../lib/time';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { getGreeting } from '../../../data/constants';
 
@@ -6,6 +9,15 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
   const { currentUser, showToast } = useApp();
   const greeting = getGreeting();
   const name = currentUser?.name?.split(' ')[0] ?? 'there';
+  const tz = currentUser?.timezone || 'UTC';
+  const [next, setNext] = useState(undefined); // undefined = loading, null = none
+
+  useEffect(() => {
+    supabase.from('bookings').select('id, starts_at, subject, meet_url')
+      .eq('status', 'confirmed').gt('ends_at', new Date().toISOString())
+      .order('starts_at').limit(1)
+      .then(({ data }) => setNext(data?.[0] ?? null));
+  }, []);
 
   return (
     <>
@@ -51,11 +63,21 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
                 <span className="card-title">📅 Upcoming Lesson</span>
                 <button className="card-link" onClick={() => onSwitch('booking')}>Book more</button>
               </div>
-              <div style={{ background: 'linear-gradient(130deg,var(--navy),#6B2045)', borderRadius: 'var(--radius-sm)', padding: 16, color: 'white', marginBottom: 10 }}>
-                <div style={{ fontSize: '.65rem', fontWeight: 700, textTransform: 'uppercase', opacity: .6, marginBottom: 4 }}>Next · Tuesday 4:00 PM</div>
-                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1rem', fontWeight: 600, marginBottom: 10 }}>Conversational English</div>
-                <button className="join-btn" onClick={() => showToast('Google Meet link would open here.', 'info')}>🎥 Join Lesson</button>
-              </div>
+              {next ? (
+                <div style={{ background: 'linear-gradient(130deg,var(--navy),#6B2045)', borderRadius: 'var(--radius-sm)', padding: 16, color: 'white', marginBottom: 10 }}>
+                  <div style={{ fontSize: '.65rem', fontWeight: 700, textTransform: 'uppercase', opacity: .6, marginBottom: 4 }}>
+                    Next · {longDateIn(tz, new Date(next.starts_at))} {timeIn(tz, new Date(next.starts_at))}
+                  </div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1rem', fontWeight: 600, marginBottom: 10 }}>{next.subject}</div>
+                  {next.meet_url
+                    ? <a className="join-btn" href={next.meet_url} target="_blank" rel="noreferrer">🎥 Join Lesson</a>
+                    : <button className="join-btn" onClick={() => onSwitch('lessons')}>View details</button>}
+                </div>
+              ) : (
+                <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: 16, marginBottom: 10, fontSize: '.85rem', color: 'var(--ink-soft)' }}>
+                  {next === undefined ? 'Loading…' : 'No lessons booked yet.'}
+                </div>
+              )}
               <div style={{ fontSize: '.78rem', color: 'var(--ink-muted)', padding: '8px 0' }}>
                 🎟 1 credit will be used · Reschedule free if &gt;2hrs before
               </div>
