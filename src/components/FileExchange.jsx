@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { openResource, uploadResource, deleteResource } from '../lib/resources';
+import { downloadResource, viewResource, uploadResource, deleteResource } from '../lib/resources';
 
 const CATEGORIES = ['', 'Grammar', 'Vocabulary', 'IELTS', 'Listening', 'Writing', 'Homework', 'Other'];
 
@@ -44,7 +44,8 @@ export function UploadForm({ studentId, onDone, label = '⬆ Upload' }) {
 // A list of files. `who` says how to describe the sender; `canDelete(r)` decides who may delete.
 export function FileList({ items, who, canDelete, onChange, empty, showStudent }) {
   const { showToast } = useApp();
-  const open = async (r) => { const err = await openResource(r); if (err) showToast(err, 'error'); };
+  const download = async (r) => { const err = await downloadResource(r); if (err) showToast(err, 'error'); };
+  const view = async (r) => { const err = await viewResource(r); if (err) showToast(err, 'error'); };
   const remove = async (r) => {
     if (!window.confirm(`Delete "${r.title}"?`)) return;
     const err = await deleteResource(r);
@@ -57,7 +58,8 @@ export function FileList({ items, who, canDelete, onChange, empty, showStudent }
         <strong>{r.title}</strong>
         <span>{[who(r), showStudent && r.student?.full_name, r.category, new Date(r.created_at).toLocaleDateString()].filter(Boolean).join(' · ')}</span>
       </div>
-      <button className="btn btn-ghost btn-sm" onClick={() => open(r)}>↓ Download</button>
+      <button className="btn btn-ghost btn-sm" onClick={() => view(r)}>View</button>
+      <button className="btn btn-ghost btn-sm" onClick={() => download(r)}>↓ Download</button>
       {canDelete(r) && <button className="btn btn-ghost btn-sm" onClick={() => remove(r)}>Delete</button>}
     </div>
   ));
