@@ -430,3 +430,6 @@ img, video, svg { max-width: 100%; height: auto; display: block; }
 .nav-actions .btn { white-space: nowrap; }
 .nav-brand-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 420px) { .nav-brand-name { max-width: 120px; } }
+
+/* Cormorant's default "1" looks like a capital I; use lining numerals for stats */
+.hero-stat span, .credit-amount, .stat-num { font-variant-numeric: lining-nums; }

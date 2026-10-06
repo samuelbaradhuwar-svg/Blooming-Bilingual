@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 const HIGHLIGHTS = [
-  { icon: '🌸', title: 'Meet Neeliën', desc: 'TEFL-certified. 5+ years. 200+ students across 14 countries. Watch her intro video.', path: '/about' },
+  { icon: '🌸', title: 'Meet Neeliën', desc: 'TEFL-certified English tutor from South Africa. Learn about her background and teaching style.', path: '/about' },
   { icon: '🎓', title: 'What I Teach', desc: 'Conversational English, exam prep, business English, homework support & more.', path: '/services' },
   { icon: '🎟', title: 'Credits & Pricing', desc: '1 credit = 1 lesson of 45 min. Buy 1–28 credits from €9/credit. Credits never expire.', path: '/pricing' },
   { icon: '✉️', title: 'Get in Touch', desc: 'Questions before starting? Send a message — Neeliën replies within 24 hours.', path: '/contact' },
@@ -26,7 +26,7 @@ export default function Home() {
               <button className="btn btn-ghost btn-lg" onClick={() => navigate('/login')}>Student Login →</button>
             </div>
             <div className="hero-stats">
-              {[['200+','Students taught'],['14','Countries'],['4.9★','Avg. rating'],['45min','Per credit']].map(([v,l]) => (
+              {[['1:1','Private lessons'],['45min','Per lesson'],['Mon–Sat','Flexible times'],['€9–12','Per credit']].map(([v,l]) => (
                 <div key={l} className="hero-stat"><span>{v}</span><p>{l}</p></div>
               ))}
             </div>
@@ -37,18 +37,13 @@ export default function Home() {
             <div className="credit-showcase">
               <div className="credit-balance-display">
                 <div className="credit-coin">🎟</div>
-                <div className="credit-amount">8</div>
-                <div className="credit-label">Lesson Credits</div>
-                <div style={{ height: 6, borderRadius: 10, background: 'rgba(255,255,255,.15)', marginTop: 12, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: '57%', background: '#E8829F', borderRadius: 10 }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.65rem', opacity: .6, marginTop: 4 }}>
-                  <span>8 remaining</span><span>14 used</span>
-                </div>
+                <div className="credit-amount">1</div>
+                <div className="credit-label">credit = one 45-minute lesson</div>
+                <div style={{ fontSize: '.7rem', opacity: .65, marginTop: 10 }}>Credits never expire</div>
               </div>
               {[
-                { dot: 'var(--green)', title: 'Conversational English', time: 'Tue 17 Jun · 4:00 PM', cost: '1 credit' },
-                { dot: 'var(--blue)',  title: 'IELTS Writing Task 2',   time: 'Fri 20 Jun · 5:00 PM', cost: '1 credit' },
+                { dot: 'var(--green)', title: 'Book any open time',  time: 'Shown in your own time zone', cost: '1 credit' },
+                { dot: 'var(--blue)',  title: 'Free rescheduling',   time: 'Up to 2 hours before',        cost: '0 credits' },
               ].map(l => (
                 <div key={l.title} className="mini-lesson-card">
                   <div className="mini-dot" style={{ background: l.dot }} />
