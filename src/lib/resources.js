@@ -11,15 +11,16 @@ export async function openResource(r) {
   return null;
 }
 
-// Upload a file to <uploader>/<random>-<name>, then record it. Cleans up the file if the record fails.
-export async function uploadResource({ file, title, category, uploaderId, visibility }) {
+// Upload a file into one student's private exchange: <student>/<random>-<name>, then record it.
+// uploaderId is whoever is sending (the student or the tutor). Cleans up the file if the record fails.
+export async function uploadResource({ file, title, category, uploaderId, studentId }) {
   if (file.size > MAX_UPLOAD_BYTES) return 'Files can be at most 10 MB.';
   const safe = file.name.replace(/[^\w.\-]+/g, '_').slice(-80);
-  const path = `${uploaderId}/${crypto.randomUUID()}-${safe}`;
+  const path = `${studentId}/${crypto.randomUUID()}-${safe}`;
   const up = await supabase.storage.from('resources').upload(path, file);
   if (up.error) return up.error.message;
   const { error } = await supabase.from('resources').insert({
-    uploader_id: uploaderId, title: title || file.name, category: category || null, storage_path: path, visibility,
+    uploader_id: uploaderId, student_id: studentId, title: title || file.name, category: category || null, storage_path: path,
   });
   if (error) { await supabase.storage.from('resources').remove([path]); return error.message; }
   return null;

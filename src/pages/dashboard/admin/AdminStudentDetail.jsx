@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
-import { openResource } from '../../../lib/resources';
+import { UploadForm, FileList } from '../../../components/FileExchange';
 import { longDateIn, shortDateIn, timeIn } from '../../../lib/time';
 import AdjustCredits from './AdjustCredits';
 
@@ -24,7 +24,7 @@ export default function AdminStudentDetail({ id }) {
       supabase.from('profiles').select('id, full_name, email, country, timezone, created_at, english_level, next_lesson_focus').eq('id', id).single(),
       supabase.from('bookings').select('id, starts_at, ends_at, subject, status, meet_url').eq('student_id', id).order('starts_at', { ascending: false }),
       supabase.from('credit_ledger').select('id, delta, reason, note, created_at').eq('student_id', id).order('created_at', { ascending: false }),
-      supabase.from('resources').select('id, title, category, storage_path, external_url, created_at').eq('uploader_id', id).order('created_at', { ascending: false }),
+      supabase.from('resources').select('id, uploader_id, title, category, storage_path, created_at').eq('student_id', id).order('created_at', { ascending: false }),
       supabase.from('lesson_notes').select('booking_id, summary, homework').eq('student_id', id),
     ]);
     if (p.error || !p.data) { showToast('Could not find that student.', 'error'); navigate('/dashboard/admin-students', { replace: true }); return; }
@@ -52,7 +52,6 @@ export default function AdminStudentDetail({ id }) {
   const next = upcoming[0];
   const dirty = level !== (p.english_level || '') || focus !== (p.next_lesson_focus || '');
   const studentTz = p.timezone || 'UTC';
-  const openRes = async (r) => { const err = await openResource(r); if (err) showToast(err, 'error'); };
 
   return (
     <>
@@ -68,7 +67,7 @@ export default function AdminStudentDetail({ id }) {
           <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--green-bg)' }}>📈</div><div className="stat-num">{p.english_level || '—'}</div><div className="stat-label">English level</div></div>
           <div className="stat-card"><div className="stat-icon" style={{ background: 'rgba(212,96,138,.08)' }}>🎟</div><div className="stat-num" style={{ color: credits > 0 ? undefined : 'var(--red)' }}>{credits}</div><div className="stat-label">Credits</div></div>
           <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--orange-bg)' }}>📅</div><div className="stat-num">{upcoming.length}</div><div className="stat-label">Upcoming lessons</div></div>
-          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--purple-bg)' }}>📁</div><div className="stat-num">{resources.length}</div><div className="stat-label">Files uploaded</div></div>
+          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--purple-bg)' }}>📁</div><div className="stat-num">{resources.length}</div><div className="stat-label">Files exchanged</div></div>
         </div>
 
         <div className="dash-grid">
@@ -131,13 +130,10 @@ export default function AdminStudentDetail({ id }) {
             </div>
 
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: 6 }}>📁 Uploaded files ({resources.length})</div>
-              {resources.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Nothing uploaded yet.</p> : resources.map(r => (
-                <div key={r.id} className="hw-item">
-                  <div className="hw-info"><strong>{r.title}</strong><span>{[r.category, new Date(r.created_at).toLocaleDateString()].filter(Boolean).join(' · ')}</span></div>
-                  <button className="btn btn-ghost btn-sm" onClick={() => openRes(r)}>↓ Download</button>
-                </div>
-              ))}
+              <div className="card-title" style={{ marginBottom: 4 }}>📁 Files with {p.full_name?.split(' ')[0] || 'student'} ({resources.length})</div>
+              <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 10 }}>Private between you and this student.</p>
+              <UploadForm studentId={id} onDone={load} label="⬆ Send to student" />
+              <FileList items={resources} who={r => r.uploader_id === id ? 'From student' : 'Sent by you'} canDelete={() => true} onChange={load} empty="No files yet." />
             </div>
           </div>
         </div>

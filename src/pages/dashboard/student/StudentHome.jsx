@@ -29,7 +29,7 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
         supabase.from('bookings').select('id', { count: 'exact', head: true }).in('status', ['confirmed', 'completed']).lt('ends_at', nowIso),
         supabase.from('lesson_notes').select('level, scores, created_at').order('created_at', { ascending: false }).limit(10),
         supabase.from('resources').select('id', { count: 'exact', head: true }),
-        supabase.from('resources').select('id, title, category, external_url').order('created_at', { ascending: false }).limit(3),
+        supabase.from('resources').select('id, title, category, uploader_id').order('created_at', { ascending: false }).limit(3),
       ]);
       const rows = notes.data || [];
       setD({
@@ -48,7 +48,7 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
     { icon: '🎓', bg: 'rgba(212,96,138,.08)', num: d?.done ?? '–', label: 'Lessons completed' },
     { icon: '📅', bg: 'var(--orange-bg)', num: d?.upcoming ?? '–', label: 'Upcoming lessons' },
     { icon: '📈', bg: 'var(--green-bg)', num: d ? (d.level ?? '—') : '–', label: 'Current level' },
-    { icon: '📁', bg: 'var(--purple-bg)', num: d?.resourceCount ?? '–', label: 'Resources', go: 'resources' },
+    { icon: '📁', bg: 'var(--purple-bg)', num: d?.resourceCount ?? '–', label: 'Files', go: 'resources' },
   ];
 
   return (
@@ -110,15 +110,15 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
 
             <div className="card card-pad">
               <div className="card-header">
-                <span className="card-title">📁 Recent Resources</span>
+                <span className="card-title">📁 Recent files</span>
                 <button className="card-link" onClick={() => onSwitch('resources')}>View all</button>
               </div>
               {!d ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
-                : d.resources.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No resources yet. Neeliën will share study material here.</p>
+                : d.resources.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No files yet. Files you and Neeliën send each other appear here.</p>
                 : d.resources.map(r => (
                   <div key={r.id} className="hw-item">
-                    <div className="hw-info"><strong>{r.title}</strong><span>{r.category || 'Resource'}</span></div>
-                    {r.external_url && <a className="btn btn-ghost btn-sm" href={r.external_url} target="_blank" rel="noreferrer">Open</a>}
+                    <div className="hw-info"><strong>{r.title}</strong><span>{r.uploader_id === currentUser.id ? 'Sent by you' : 'From Neeliën'}{r.category ? ` · ${r.category}` : ''}</span></div>
+                    <button className="btn btn-ghost btn-sm" onClick={() => onSwitch('resources')}>View</button>
                   </div>
                 ))}
             </div>

@@ -15,7 +15,7 @@ const ADMIN_NAV = [
   { view: 'admin-students',  icon: '👥', label: 'Students' },
   { view: 'admin-bookings',  icon: '📅', label: 'Bookings' },
   { view: 'admin-lessons',   icon: '🎓', label: 'Lessons',     section: 'Content' },
-  { view: 'admin-resources', icon: '📁', label: 'Resources' },
+  { view: 'admin-resources', icon: '📁', label: 'Student files' },
   { view: 'admin-billing',   icon: '💰', label: 'Invoices',    section: 'Finance' },
   { view: 'admin-settings',  icon: '⚙️', label: 'Hours & leave' },
 ];
