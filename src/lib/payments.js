@@ -5,20 +5,33 @@ import { supabase } from './supabase';
 async function callPayments(payload) {
   const { data: url, error } = await supabase.rpc('payment_function_url');
   if (error || !url) throw new Error('Online payments are not switched on yet.');
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Please sign in again.');
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify(payload),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+  const send = async (accessToken) => {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { res, data };
+  };
+
+  let { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Please sign in again.');
+  let { res, data } = await send(session.access_token);
+
+  // The sign-in token may just have expired: refresh it once and try again.
+  if (res.status === 401) {
+    const refreshed = await supabase.auth.refreshSession();
+    session = refreshed.data.session;
+    if (!session) throw new Error('Please sign in again.');
+    ({ res, data } = await send(session.access_token));
+  }
+  if (!res.ok) throw new Error(data.error || data.message || 'Something went wrong. Please try again.');
   return data;
 }
 

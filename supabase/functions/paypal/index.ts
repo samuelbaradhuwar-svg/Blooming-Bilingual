@@ -68,8 +68,12 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
       global: { headers: { Authorization: auth } },
     });
-    const { data: userData } = await userClient.auth.getUser();
-    if (!userData?.user) return json({ error: 'Please sign in again.' }, 401);
+    const token = auth.replace(/^Bearer\s+/i, '');
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (!userData?.user) {
+      console.error('Could not identify the signed-in student:', userErr?.message ?? 'no user returned', `(token present: ${!!token}, apikey header present: ${!!req.headers.get('apikey')})`);
+      return json({ error: 'Please sign in again.', reason: 'auth' }, 401);
+    }
 
     const body = await req.json();
 
