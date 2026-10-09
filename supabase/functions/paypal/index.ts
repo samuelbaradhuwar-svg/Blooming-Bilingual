@@ -134,12 +134,19 @@ Deno.serve(async (req) => {
 
       const unit = pp.data.purchase_units?.[0];
       const cap = unit?.payments?.captures?.[0];
-      const valid = pp.data.status === 'COMPLETED' && cap?.status === 'COMPLETED'
-        && unit?.custom_id === order.id
-        && cap.amount?.value === money(order.amount_cents)
-        && String(cap.amount?.currency_code).toUpperCase() === order.currency.toUpperCase();
+      // PayPal returns our order reference in different places depending on the call
+      // (on the capture itself, on the purchase unit, or as the reference_id), so accept any of them.
+      const reference = cap?.custom_id ?? unit?.custom_id ?? unit?.reference_id;
+      const checks = {
+        orderCompleted: pp.data.status === 'COMPLETED',
+        captureCompleted: cap?.status === 'COMPLETED',
+        sameOrder: reference === order.id,
+        sameAmount: cap?.amount?.value === money(order.amount_cents),
+        sameCurrency: String(cap?.amount?.currency_code).toUpperCase() === order.currency.toUpperCase(),
+      };
+      const valid = Object.values(checks).every(Boolean);
       if (!valid) {
-        console.error('PayPal payment did not match the order', JSON.stringify({ status: pp.data.status, cap }));
+        console.error('PayPal payment did not match the order', JSON.stringify({ checks, captureStatus: cap?.status, pendingReason: cap?.status_details?.reason, reference, amount: cap?.amount }));
         return json({ error: 'The payment is not complete or does not match this order. No credits were added.' }, 400);
       }
 
