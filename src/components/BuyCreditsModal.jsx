@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PACKS, CURRENCY_SYMBOL, packPrice, packPerCredit } from '../data/constants';
+import { startCheckout } from '../lib/payments';
 
 export default function BuyCreditsModal({ onClose }) {
   const { showToast } = useApp();
   const [selected, setSelected] = useState('B');
-  const [method, setMethod] = useState('stripe');
+  const [busy, setBusy] = useState(false);
   const rate = 12;
 
   const pack = PACKS.find(p => p.id === selected);
@@ -13,10 +14,15 @@ export default function BuyCreditsModal({ onClose }) {
   const per = packPerCredit(pack.discount, rate);
   const saved = Math.round(rate * pack.credits * pack.discount);
 
-  const complete = () => {
-    // TODO(payments): create an order via create_order(), then redirect to Stripe Checkout.
-    showToast('Online payments are being set up — please contact Neeliën to buy credits for now.', 'info');
-    onClose();
+  const complete = async () => {
+    setBusy(true);
+    try {
+      const url = await startCheckout(selected);
+      window.location.href = url;            // PayPal takes it from here and sends the student back afterwards
+    } catch (e) {
+      setBusy(false);
+      showToast(e.message, 'error');
+    }
   };
 
   return (
@@ -65,20 +71,11 @@ export default function BuyCreditsModal({ onClose }) {
         Selected: <strong>{pack.credits} credit{pack.credits > 1 ? 's' : ''}</strong> — {CURRENCY_SYMBOL}{price} ({CURRENCY_SYMBOL}{per}/credit{pack.discount > 0 ? ` · save ${CURRENCY_SYMBOL}${saved}` : ''})
       </div>
 
-      {/* Payment */}
-      <div style={{ marginBottom: 14 }}>
-        <label style={{ fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--ink-soft)', display: 'block', marginBottom: 8 }}>Payment Method</label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className={`btn btn-sm ${method === 'stripe' ? 'btn-outline' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setMethod('stripe')}>💳 Stripe (International)</button>
-          <button className={`btn btn-sm ${method === 'payfast' ? 'btn-outline' : 'btn-ghost'}`} style={{ flex: 1 }} onClick={() => setMethod('payfast')}>🏦 PayFast (SA)</button>
-        </div>
-      </div>
-
-      <button className="btn btn-primary btn-full" onClick={complete}>
-        Buy Credits — Secure Checkout →
+      <button className="btn btn-primary btn-full" disabled={busy} onClick={complete}>
+        {busy ? 'Taking you to PayPal…' : 'Pay with PayPal →'}
       </button>
       <p style={{ fontSize: '.72rem', color: 'var(--ink-muted)', textAlign: 'center', marginTop: 8 }}>
-        🔒 Stripe & PayFast · Credits added instantly after payment
+        🔒 Secure payment by PayPal (you can pay with a card there too) · Credits are added as soon as payment is confirmed
       </p>
     </div>
   );

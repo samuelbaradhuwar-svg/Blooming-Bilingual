@@ -53,7 +53,7 @@ export function Privacy() {
         <li><strong>Supabase</strong>: database, sign-in and file storage.</li>
         <li><strong>Vercel</strong>: website hosting.</li>
         <li><strong>Google</strong>: Google Calendar and Google Meet, which create your lesson video link and send your calendar invitation (your name and email address are shared with Google for this).</li>
-        <li><strong>Payment providers</strong> (such as Stripe or PayFast): they process payments when online payments are available.</li>
+        <li><strong>PayPal</strong>: processes payments. Your card or PayPal details are entered with PayPal, not on this website.</li>
       </ul>
       <p>These providers may store data in other countries. Each has its own privacy policy.</p>
 

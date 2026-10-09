@@ -14,6 +14,8 @@ const Contact   = lazy(() => import('./pages/Contact'));
 const Login     = lazy(() => import('./pages/Login'));
 const Register  = lazy(() => import('./pages/Register'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
+const PaymentReturn    = lazy(() => import('./pages/PaymentReturn').then(m => ({ default: m.PaymentReturn })));
+const PaymentCancelled = lazy(() => import('./pages/PaymentReturn').then(m => ({ default: m.PaymentCancelled })));
 const Privacy   = lazy(() => import('./pages/Legal').then(m => ({ default: m.Privacy })));
 const Terms     = lazy(() => import('./pages/Legal').then(m => ({ default: m.Terms })));
 
@@ -58,6 +60,8 @@ export default function App() {
           <Route path="/tutor-login" element={<GuestOnly><Login tutor /></GuestOnly>} />
           <Route path="/register"  element={<GuestOnly><Register /></GuestOnly>} />
           <Route path="/dashboard/:view?/:id?" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/payment/return"    element={<ProtectedRoute><PaymentReturn /></ProtectedRoute>} />
+          <Route path="/payment/cancelled" element={<ProtectedRoute><PaymentCancelled /></ProtectedRoute>} />
           <Route path="/privacy"   element={<Privacy />} />
           <Route path="/terms"     element={<Terms />} />
           <Route path="*"          element={<NotFound />} />

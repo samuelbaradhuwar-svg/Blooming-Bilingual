@@ -7,7 +7,7 @@ const RATE = 12;
 const FAQS = [
   { q: 'Do credits expire?', a: 'No — credits never expire. Buy at your own pace and use them whenever you\'re ready.' },
   { q: 'How do I book after buying?', a: 'After purchase, your credits appear in your student dashboard. Go to "Book a Lesson", pick a date and time, and confirm — 1 credit is held.' },
-  { q: 'What payment methods are accepted?', a: 'Stripe (international — Visa, Mastercard, and more) and PayFast for South African students.' },
+  { q: 'What payment methods are accepted?', a: 'Payments are taken securely through PayPal. You can pay with your PayPal balance or, where PayPal offers it, with a debit or credit card.' },
   { q: 'How many credits can I buy at once?', a: `Between 1 and 28 at a time. Buying in bulk gives you a better per-credit rate — down to ${CURRENCY_SYMBOL}9/credit for 28 credits.` },
 ];
 

@@ -79,7 +79,7 @@ export default function PublicNav() {
 
         <div className="menu-footer-note">
           <span>© {new Date().getFullYear()} The Blooming Bilingual</span>
-          <span>Stripe · PayFast · Google Meet</span>
+          <span>PayPal · Google Meet</span>
         </div>
       </div>
     </>
