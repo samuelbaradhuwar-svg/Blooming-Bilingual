@@ -23,7 +23,9 @@ const Terms     = lazy(() => import('./pages/Legal').then(m => ({ default: m.Ter
 function GuestOnly({ children }) {
   const { currentUser, authLoading } = useApp();
   if (authLoading) return null;
-  return currentUser ? <Navigate to="/dashboard" replace /> : children;
+  const { state } = useLocation();
+  const from = typeof state?.from === 'string' && state.from.startsWith('/') ? state.from : '/dashboard';
+  return currentUser ? <Navigate to={from} replace /> : children;
 }
 
 function NotFound() {

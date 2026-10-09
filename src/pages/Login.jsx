@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 
 export default function Login({ tutor = false }) {
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const from = typeof state?.from === 'string' && state.from.startsWith('/') ? state.from : '/dashboard';
   const { login } = useApp();
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
@@ -15,7 +17,7 @@ export default function Login({ tutor = false }) {
     setBusy(true);
     const user = await login(email, pass, tutor ? 'admin' : undefined);
     setBusy(false);
-    if (user) navigate('/dashboard', { replace: true });
+    if (user) navigate(from, { replace: true });
   };
 
   return (
