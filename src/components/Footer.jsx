@@ -21,7 +21,6 @@ export default function Footer() {
           <h2>Students</h2>
           <Link to="/login">Login</Link>
           <Link to="/register">Create Account</Link>
-          <Link to="/tutor-login">Tutor Login</Link>
         </nav>
         <nav className="footer-col" aria-label="Get in touch">
           <h2>Questions?</h2>
