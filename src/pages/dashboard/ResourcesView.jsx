@@ -4,6 +4,7 @@ import DashHeader from '../../components/dashboard/DashHeader';
 import { UploadForm, FileList } from '../../components/FileExchange';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabase';
+import Field from '../../components/ui/Field';
 
 // Student: your private file exchange with Neeliën.
 // Tutor: every student's exchange, filtered by student (and a shortcut to each student's page).
@@ -46,7 +47,7 @@ export default function ResourcesView({ admin = false }) {
               <div className="card card-pad">
                 <div className="card-title" style={{ marginBottom: 4 }}>Send to Neeliën</div>
                 <p style={{ fontSize: '.8rem', color: 'var(--ink-muted)', marginBottom: 12 }}>Essays, homework or questions. Only you and Neeliën can see your files.</p>
-                <UploadForm studentId={currentUser.id} onDone={load} label="⬆ Send" />
+                <UploadForm studentId={currentUser.id} onDone={load} label="Send" />
                 <FileList items={mine} who={() => 'Sent by you'} canDelete={() => true} onChange={load} empty="You haven't sent anything yet." />
               </div>
             </>
@@ -63,13 +64,14 @@ export default function ResourcesView({ admin = false }) {
         <p style={{ fontSize: '.82rem', color: 'var(--ink-muted)', marginBottom: 12 }}>
           Every file is private between one student and you. To send a file to a student, open the student from the Students list.
         </p>
-        <div className="form-group" style={{ maxWidth: 320 }}>
-          <label>Show files for</label>
-          <select value={pick} onChange={e => setPick(e.target.value)}>
-            <option value="">All students</option>
-            {students.map(s => <option key={s.id} value={s.id}>{s.full_name || s.email}</option>)}
-          </select>
-        </div>
+        <Field label="Show files for" style={{ maxWidth: 320 }}>
+          {id => (
+            <select id={id} value={pick} onChange={e => setPick(e.target.value)}>
+              <option value="">All students</option>
+              {students.map(s => <option key={s.id} value={s.id}>{s.full_name || s.email}</option>)}
+            </select>
+          )}
+        </Field>
         <div className="card card-pad">
           {rows === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p> : (
             <FileList items={shown} showStudent who={r => r.uploader_id === currentUser.id ? 'Sent by you' : 'From student'}

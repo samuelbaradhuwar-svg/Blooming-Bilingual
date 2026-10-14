@@ -4,6 +4,8 @@ import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { longDateIn, timeIn } from '../../../lib/time';
 import { SKILLS } from '../student/StudentProgress';
+import Icon from '../../../components/ui/Icon';
+import Field from '../../../components/ui/Field';
 
 const LEVELS = ['', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -43,18 +45,19 @@ function NotesForm({ booking, existing, onDone }) {
   return (
     <div>
       <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', marginBottom: 12 }}>{booking.profiles?.full_name} · {booking.subject}</p>
-      <div className="form-group"><label>What you covered</label><textarea rows={3} value={f.summary} onChange={set('summary')} /></div>
-      <div className="form-group"><label>Homework</label><textarea rows={2} value={f.homework} onChange={set('homework')} /></div>
-      <div className="form-group"><label>Level (optional)</label>
-        <select value={f.level} onChange={set('level')}>{LEVELS.map(l => <option key={l} value={l}>{l || '—'}</option>)}</select>
-      </div>
-      <div className="form-group"><label>Skill scores, 0–100 (optional — the student sees the latest ones)</label>
+      <Field label="What you covered">{id => <textarea id={id} rows={3} value={f.summary} onChange={set('summary')} />}</Field>
+      <Field label="Homework">{id => <textarea id={id} rows={2} value={f.homework} onChange={set('homework')} />}</Field>
+      <Field label="Level (optional)">
+        {id => <select id={id} value={f.level} onChange={set('level')}>{LEVELS.map(l => <option key={l} value={l}>{l || '—'}</option>)}</select>}
+      </Field>
+      <fieldset className="form-group" style={{ border: 'none', padding: 0, minWidth: 0 }}>
+        <legend style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>Skill scores, 0–100 (optional). The student sees the latest ones.</legend>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
           {SKILLS.map(([k, label]) => (
-            <input key={k} type="number" min="0" max="100" inputMode="numeric" placeholder={label} aria-label={label} value={f[k]} onChange={set(k)} />
+            <input key={k} name={k} type="number" min="0" max="100" inputMode="numeric" placeholder={label} aria-label={label} value={f[k]} onChange={set(k)} />
           ))}
         </div>
-      </div>
+      </fieldset>
       <button className="btn btn-primary btn-full" disabled={busy} onClick={save}>{busy ? 'Saving…' : booking.status === 'confirmed' ? 'Save & mark completed' : 'Save notes'}</button>
     </div>
   );
@@ -88,7 +91,7 @@ export default function AdminLessons() {
         <div className="hw-info" style={{ flex: 1, minWidth: 200 }}>
           <strong>{b.profiles?.full_name || 'Student'} · {b.subject}</strong>
           <span>{longDateIn(tz, start)} · {timeIn(tz, start)}</span>
-          {notes[b.id]?.summary && <span>📝 {notes[b.id].summary}</span>}
+          {notes[b.id]?.summary && <span><Icon name="notes" /> {notes[b.id].summary}</span>}
         </div>
         <button className={`btn btn-sm ${b.status === 'confirmed' ? 'btn-primary' : 'btn-ghost'}`}
           onClick={() => openModal('Lesson notes', <NotesForm booking={b} existing={notes[b.id]} onDone={load} />)}>
@@ -106,7 +109,7 @@ export default function AdminLessons() {
           <>
             <div className="card card-pad" style={{ marginBottom: 16 }}>
               <div className="card-title" style={{ marginBottom: 8 }}>To wrap up ({todo.length})</div>
-              {todo.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>All caught up ✨</p> : todo.map(b => <Row key={b.id} b={b} />)}
+              {todo.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>All caught up. Nothing to wrap up right now.</p> : todo.map(b => <Row key={b.id} b={b} />)}
             </div>
             <div className="card card-pad">
               <div className="card-title" style={{ marginBottom: 8 }}>Completed ({done.length})</div>

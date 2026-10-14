@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { PACKS, CURRENCY_SYMBOL, packPrice, packPerCredit } from '../data/constants';
 import { startCheckout } from '../lib/payments';
+import Icon from './ui/Icon';
 
 export default function BuyCreditsModal({ onClose }) {
   const { showToast } = useApp();
@@ -53,7 +54,7 @@ export default function BuyCreditsModal({ onClose }) {
                   {p.badge}
                 </div>
               )}
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.4rem', fontWeight: 700, color: 'var(--navy)' }}>
+              <div style={{ fontSize: '1.35rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--navy)' }}>
                 {p.credits} credit{p.credits > 1 ? 's' : ''}
               </div>
               <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--blue)', marginTop: 2 }}>{CURRENCY_SYMBOL}{pr}</div>
@@ -75,7 +76,7 @@ export default function BuyCreditsModal({ onClose }) {
         {busy ? 'Taking you to PayPal…' : 'Pay with PayPal →'}
       </button>
       <p style={{ fontSize: '.72rem', color: 'var(--ink-muted)', textAlign: 'center', marginTop: 8 }}>
-        🔒 Secure payment by PayPal (you can pay with a card there too) · Credits are added as soon as payment is confirmed
+        <Icon name="lock" /> Secure payment by PayPal (you can pay with a card there too) · Credits are added as soon as payment is confirmed
       </p>
     </div>
   );

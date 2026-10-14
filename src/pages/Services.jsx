@@ -1,14 +1,20 @@
 import { useNavigate } from 'react-router-dom';
+import Icon from '../components/ui/Icon';
 
 const SERVICES = [
-  { icon: '💬', bg: 'rgba(212,96,138,0.08)', title: 'Conversational English', desc: 'Build natural fluency through structured conversation. Covers pronunciation, vocabulary, everyday expressions, and real-world speaking confidence. All levels A1–C2.', badge: '1 credit', badgeCls: 'chip-blue' },
-  { icon: '🏆', bg: 'var(--orange-bg)', title: 'Exam Preparation', desc: 'IELTS, TOEFL, Cambridge B2/C1/C2 — strategic preparation with practice tests, task-type breakdown, timed writing, and expert feedback.', badge: '1 credit', badgeCls: 'chip-orange' },
-  { icon: '📚', bg: 'var(--green-bg)', title: 'Homework & Assignment Support', desc: 'Guided support on English school assignments, essays, grammar exercises, and written work. Perfect for students who need a focused expert walkthrough.', badge: '1 credit', badgeCls: 'chip-green' },
-  { icon: '💼', bg: 'var(--purple-bg)', title: 'Business English', desc: 'Professional communication for meetings, presentations, emails, and negotiations. Build the language confidence to thrive in international work environments.', badge: '1 credit', badgeCls: 'chip-purple' },
-  { icon: '📈', bg: '#FAE4EB', title: 'Progress Tracking & Resources', desc: 'Your student dashboard tracks improvement across all skills. Access PDFs, worksheets, and study materials Neeliën adds just for you.', badge: 'Included', badgeCls: '' },
+  { icon: 'chat',     bg: 'rgba(184,65,107,0.1)', title: 'Conversational English', desc: 'Build natural fluency through structured conversation. Covers pronunciation, vocabulary, everyday expressions, and real-world speaking confidence. All levels A1–C2.', badge: '1 credit', badgeCls: 'chip-blue' },
+  { icon: 'trophy',   bg: 'var(--orange-bg)',     title: 'Exam Preparation', desc: 'IELTS, TOEFL, Cambridge B2/C1/C2: strategic preparation with practice tests, task-type breakdown, timed writing, and expert feedback.', badge: '1 credit', badgeCls: 'chip-orange' },
+  { icon: 'books',    bg: 'var(--green-bg)',      title: 'Homework & Assignment Support', desc: 'Guided support on English school assignments, essays, grammar exercises, and written work. Perfect for students who need a focused expert walkthrough.', badge: '1 credit', badgeCls: 'chip-green' },
+  { icon: 'business', bg: 'var(--purple-bg)',     title: 'Business English', desc: 'Professional communication for meetings, presentations, emails, and negotiations. Build the language confidence to thrive in international work environments.', badge: '1 credit', badgeCls: 'chip-purple' },
+  { icon: 'progress', bg: '#FAE4EB',              title: 'Progress Tracking & Files', desc: 'Your student dashboard shows your level, lesson notes, and homework after every lesson. Share files privately with Neeliën, and she can send you worksheets and study materials.', badge: 'Included', badgeCls: 'chip-blue' },
 ];
 
-const STEPS = [['🎟','Buy Credits','Choose 1–28'],['📅','Book a Slot','4 PM–1 AM daily'],['🎥','Attend Live','Google Meet / Zoom'],['📊','Track Progress','Your dashboard']];
+const STEPS = [
+  ['credits', 'Buy Credits', 'Choose 1–28'],
+  ['calendar', 'Book a Slot', 'Mon–Sat, 9 AM–1 AM (SAST)'],
+  ['video', 'Attend Live', 'Google Meet link included'],
+  ['progress', 'Track Progress', 'Notes and homework in your dashboard'],
+];
 
 export default function Services() {
   const navigate = useNavigate();
@@ -24,34 +30,31 @@ export default function Services() {
 
       <section className="section">
         <div className="section-inner">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div className="service-list">
             {SERVICES.map(s => (
-              <div key={s.title} style={{ display: 'grid', gridTemplateColumns: '64px 1fr auto', gap: 20, alignItems: 'center', background: 'white', border: '1px solid var(--border-soft)', borderRadius: 'var(--radius)', padding: '22px 24px', boxShadow: 'var(--shadow-sm)', transition: 'box-shadow .2s' }}
-                onMouseOver={e => e.currentTarget.style.boxShadow = 'var(--shadow-lg)'}
-                onMouseOut={e => e.currentTarget.style.boxShadow = 'var(--shadow-sm)'}
-              >
-                <div style={{ width: 54, height: 54, background: s.bg, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>{s.icon}</div>
-                <div>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.1rem', fontWeight: 600, color: 'var(--navy)', marginBottom: 4 }}>{s.title}</div>
-                  <div style={{ fontSize: '.85rem', color: 'var(--ink-muted)', fontWeight: 300, lineHeight: 1.6 }}>{s.desc}</div>
+              <article key={s.title} className="service-row">
+                <div className="service-icon" style={{ background: s.bg }}><Icon name={s.icon} /></div>
+                <div className="service-body">
+                  <h2>{s.title}</h2>
+                  <p>{s.desc}</p>
                 </div>
-                <span className={`chip ${s.badgeCls}`} style={{ flexShrink: 0 }}>{s.badge}</span>
-              </div>
+                <span className={`chip ${s.badgeCls}`}>{s.badge}</span>
+              </article>
             ))}
           </div>
 
-          <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius)', padding: '28px 32px', marginTop: 32, display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20, textAlign: 'center' }}>
-            {STEPS.map(([icon,title,sub]) => (
-              <div key={title}>
-                <div style={{ fontSize: '1.4rem', marginBottom: 6 }}>{icon}</div>
-                <div style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--navy)' }}>{title}</div>
-                <div style={{ fontSize: '.75rem', color: 'var(--ink-muted)', marginTop: 3 }}>{sub}</div>
-              </div>
+          <ol className="steps">
+            {STEPS.map(([icon, title, sub], i) => (
+              <li key={title}>
+                <span className="step-icon"><Icon name={icon} /></span>
+                <span className="step-title">{i + 1}. {title}</span>
+                <span className="step-sub">{sub}</span>
+              </li>
             ))}
-          </div>
+          </ol>
 
           <div style={{ textAlign: 'center', marginTop: 28 }}>
-            <button className="btn btn-primary btn-lg" onClick={() => navigate('/pricing')}>🎟 See Pricing & Buy Credits</button>
+            <button className="btn btn-primary btn-lg" onClick={() => navigate('/pricing')}>See Pricing & Buy Credits</button>
           </div>
         </div>
       </section>

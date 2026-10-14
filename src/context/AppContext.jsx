@@ -109,7 +109,7 @@ export function AppProvider({ children }) {
     roleCheck.current = false;
     setCurrentUser(user);
     const first = (data.user.user_metadata?.full_name || '').split(' ')[0];
-    showToast(`${getGreeting()}${first ? ', ' + first : ''}! 🌸`, 'success');
+    showToast(`${getGreeting()}${first ? ', ' + first : ''}!`, 'success');
     return user;
   }, [showToast]);
 
@@ -128,13 +128,13 @@ export function AppProvider({ children }) {
     if (error) { showToast(error.message, 'error'); return { ok: false }; }
     if (!data.session) {
       // Email confirmation is on: the account exists but needs verifying first.
-      showToast('Check your email to confirm your account, then sign in. 🌸', 'success');
+      showToast('Check your email to confirm your account, then sign in.', 'success');
       return { ok: true, needsConfirmation: true };
     }
     // Save the student's timezone so lesson times display correctly everywhere.
     await supabase.from('profiles').update({ timezone: browserTimezone() }).eq('id', data.user.id);
     setCurrentUser(await loadCurrentUser(data.user));
-    showToast('Account created! Buy your first credits to get started. 🌸', 'success');
+    showToast('Account created! Buy your first credits to get started.', 'success');
     return { ok: true, needsConfirmation: false };
   }, [showToast]);
 

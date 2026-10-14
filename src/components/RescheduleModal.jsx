@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { dateKeyIn, timeIn, shortDateIn } from '../lib/time';
+import Field from './ui/Field';
 
 export default function RescheduleModal({ booking, onDone }) {
   const { currentUser, showToast, closeModal } = useApp();
@@ -48,13 +49,14 @@ export default function RescheduleModal({ booking, onDone }) {
         <p style={{ fontSize: '.85rem' }}>No open times in the next 6 weeks.</p>
       ) : (
         <>
-          <div className="form-group">
-            <label>New date</label>
-            <select value={day} onChange={e => { setDay(e.target.value); setSlot(null); }}>
-              <option value="">Choose a date…</option>
-              {days.map(k => <option key={k} value={k}>{shortDateIn(tz, byDay[k][0])}</option>)}
-            </select>
-          </div>
+          <Field label="New date">
+            {id => (
+              <select id={id} value={day} onChange={e => { setDay(e.target.value); setSlot(null); }}>
+                <option value="">Choose a date…</option>
+                {days.map(k => <option key={k} value={k}>{shortDateIn(tz, byDay[k][0])}</option>)}
+              </select>
+            )}
+          </Field>
           {day && (
             <div className="slots-grid" style={{ marginBottom: 18 }}>
               {byDay[day].map(d => {

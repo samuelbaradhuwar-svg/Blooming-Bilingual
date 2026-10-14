@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useEffect } from 'react';
 import { downloadResource, previewResource, uploadResource, deleteResource } from '../lib/resources';
+import Icon from './ui/Icon';
 
 const CATEGORIES = ['', 'Grammar', 'Vocabulary', 'IELTS', 'Listening', 'Writing', 'Homework', 'Other'];
 
 // Upload box: sends a file into ONE student's private exchange with the tutor.
-export function UploadForm({ studentId, onDone, label = '⬆ Upload' }) {
+export function UploadForm({ studentId, onDone, label = 'Upload' }) {
   const { currentUser, showToast } = useApp();
   const [file, setFile] = useState(null);
   const [title, setTitle] = useState('');
@@ -37,7 +38,7 @@ export function UploadForm({ studentId, onDone, label = '⬆ Upload' }) {
           {CATEGORIES.map(c => <option key={c} value={c}>{c || '—'}</option>)}
         </select>
       </label>
-      <button className="btn btn-primary btn-sm" disabled={!file || busy || !studentId}>{busy ? 'Sending…' : label}</button>
+      <button className="btn btn-primary btn-sm" disabled={!file || busy || !studentId}>{busy ? 'Sending…' : <><Icon name="upload" /> {label}</>}</button>
     </form>
   );
 }

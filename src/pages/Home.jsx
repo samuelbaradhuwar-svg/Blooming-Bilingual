@@ -1,10 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Icon from '../components/ui/Icon';
 
 const HIGHLIGHTS = [
-  { icon: '🌸', title: 'Meet Neeliën', desc: 'TEFL-certified English tutor from South Africa. Learn about her background and teaching style.', path: '/about' },
-  { icon: '🎓', title: 'What I Teach', desc: 'Conversational English, exam prep, business English, homework support & more.', path: '/services' },
-  { icon: '🎟', title: 'Credits & Pricing', desc: '1 credit = 1 lesson of 45 min. Buy 1–28 credits from $9/credit. Credits never expire.', path: '/pricing' },
-  { icon: '✉️', title: 'Get in Touch', desc: 'Questions before starting? Send a message — Neeliën replies within 24 hours.', path: '/contact' },
+  { icon: 'logo',    title: 'Meet Neeliën',      desc: 'TEFL-certified English tutor from South Africa. Learn about her background and teaching style.', path: '/about' },
+  { icon: 'lessons', title: 'What I Teach',      desc: 'Conversational English, exam prep, business English, homework support & more.', path: '/services' },
+  { icon: 'credits', title: 'Credits & Pricing', desc: '1 credit = one 45-minute lesson. Buy 1–28 credits from $9 each. Credits never expire.', path: '/pricing' },
+  { icon: 'mail',    title: 'Get in Touch',      desc: 'Questions before starting? Send a message. Neeliën replies within 24 hours.', path: '/contact' },
 ];
 
 export default function Home() {
@@ -14,32 +15,32 @@ export default function Home() {
     <>
       {/* Hero */}
       <section className="hero">
-        <div className="hero-bg-blob blob-1" />
-        <div className="hero-bg-blob blob-2" />
+        <div className="hero-bg-blob blob-1" aria-hidden="true" />
+        <div className="hero-bg-blob blob-2" aria-hidden="true" />
         <div className="hero-inner">
           <div>
-            <div className="hero-badge">🌸 Online English Tutoring · Worldwide</div>
+            <div className="hero-badge"><Icon name="logo" weight="fill" /> Online English Tutoring · Worldwide</div>
             <h1>Learn English<br />with <em>confidence</em><br />&amp; care.</h1>
             <p className="hero-sub">One-on-one lessons with Neeliën Van Rooyen. Buy credits, book a 45-minute slot, and bloom at your own pace.</p>
             <div className="hero-actions">
-              <button className="btn btn-primary btn-lg" onClick={() => navigate('/register')}>🌸 Get Started</button>
-              <button className="btn btn-ghost btn-lg" onClick={() => navigate('/login')}>Student Login →</button>
+              <button className="btn btn-primary btn-lg" onClick={() => navigate('/register')}>Get Started</button>
+              <button className="btn btn-ghost btn-lg" onClick={() => navigate('/login')}>Student Login <Icon name="arrow" /></button>
             </div>
             <div className="hero-stats">
-              {[['1:1','Private lessons'],['45min','Per lesson'],['Mon–Sat','Flexible times'],['$9–12','Per credit']].map(([v,l]) => (
+              {[['1:1','Private lessons'],['45 min','Per lesson'],['Mon–Sat','Flexible times'],['$9–12','Per credit']].map(([v,l]) => (
                 <div key={l} className="hero-stat"><span>{v}</span><p>{l}</p></div>
               ))}
             </div>
           </div>
 
           {/* Credit showcase (desktop only) */}
-          <div className="hero-visual">
+          <div className="hero-visual" aria-hidden="true">
             <div className="credit-showcase">
               <div className="credit-balance-display">
-                <div className="credit-coin">🎟</div>
+                <div className="credit-coin"><Icon name="credits" weight="fill" /></div>
                 <div className="credit-amount">1</div>
                 <div className="credit-label">credit = one 45-minute lesson</div>
-                <div style={{ fontSize: '.7rem', opacity: .65, marginTop: 10 }}>Credits never expire</div>
+                <div style={{ fontSize: '.78rem', opacity: .8, marginTop: 10 }}>Credits never expire</div>
               </div>
               {[
                 { dot: 'var(--green)', title: 'Book any open time',  time: 'Shown in your own time zone', cost: '1 credit' },
@@ -60,50 +61,14 @@ export default function Home() {
       <div className="home-highlights">
         <div className="home-highlights-inner">
           {HIGHLIGHTS.map(h => (
-            <div key={h.title} className="highlight-card" onClick={() => navigate(h.path)}>
-              <div className="highlight-icon">{h.icon}</div>
-              <div className="highlight-body"><h3>{h.title}</h3><p>{h.desc}</p></div>
-              <span className="highlight-arrow">→</span>
-            </div>
+            <Link key={h.title} to={h.path} className="highlight-card">
+              <span className="highlight-icon"><Icon name={h.icon} /></span>
+              <span className="highlight-body"><h3>{h.title}</h3><p>{h.desc}</p></span>
+              <Icon name="arrow" className="highlight-arrow" />
+            </Link>
           ))}
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="main-footer">
-        <div className="footer-grid">
-          <div className="footer-brand">
-            <div className="nav-brand">
-              <div className="nav-brand-icon">🌸</div>
-              <div className="nav-brand-name" style={{ color: 'white' }}>The Blooming Bilingual</div>
-            </div>
-            <p>Premium online English tutoring by Neeliën Van Rooyen. One credit = one 45-minute lesson.</p>
-          </div>
-          <div className="footer-col">
-            <h4>Explore</h4>
-            {[['About','/about'],['Services','/services'],['Pricing','/pricing'],['Contact','/contact']].map(([l,p]) => (
-              <a key={l} onClick={() => navigate(p)}>{l}</a>
-            ))}
-          </div>
-          <div className="footer-col">
-            <h4>Students</h4>
-            <a onClick={() => navigate('/login')}>Login</a>
-            <a onClick={() => navigate('/register')}>Create Account</a>
-            <a onClick={() => navigate('/tutor-login')}>Tutor Login</a>
-          </div>
-          <div className="footer-col">
-            <h4>Connect</h4>
-            <a onClick={() => navigate('/contact')}>✉️ Send a message</a>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <span>© {new Date().getFullYear()} The Blooming Bilingual · Neeliën Van Rooyen</span>
-          <span style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <a onClick={() => navigate('/privacy')} style={{ cursor: 'pointer' }}>Privacy</a>
-            <a onClick={() => navigate('/terms')} style={{ cursor: 'pointer' }}>Terms</a>
-          </span>
-        </div>
-      </footer>
     </>
   );
 }

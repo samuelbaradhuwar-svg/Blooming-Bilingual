@@ -4,6 +4,7 @@ import { useApp } from './context/AppContext';
 import Toast from './components/ui/Toast';
 import Modal from './components/ui/Modal';
 import PublicNav from './components/PublicNav';
+import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 
@@ -22,8 +23,8 @@ const Terms     = lazy(() => import('./pages/Legal').then(m => ({ default: m.Ter
 // Signed-in users have no reason to see the login/register pages.
 function GuestOnly({ children }) {
   const { currentUser, authLoading } = useApp();
+  const { state } = useLocation();   // hooks must run before any early return
   if (authLoading) return null;
-  const { state } = useLocation();
   const from = typeof state?.from === 'string' && state.from.startsWith('/') ? state.from : '/dashboard';
   return currentUser ? <Navigate to={from} replace /> : children;
 }
@@ -34,7 +35,7 @@ function NotFound() {
       <div className="auth-card" style={{ textAlign: 'center' }}>
         <h2>Page not found</h2>
         <p className="auth-sub">That page doesn't exist.</p>
-        <Link to="/" className="btn btn-primary">Back home</Link>
+        <Link to="/" className="btn btn-primary">Back Home</Link>
       </div>
     </div>
   );
@@ -44,6 +45,7 @@ export default function App() {
   const { pathname } = useLocation();
   const { currentUser } = useApp();
   const showPublicNav = !(pathname.startsWith('/dashboard') && currentUser);
+  const showFooter = showPublicNav && !['/login', '/register', '/tutor-login'].includes(pathname) && !pathname.startsWith('/payment');
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
@@ -51,7 +53,9 @@ export default function App() {
     <>
       {showPublicNav && <PublicNav />}
 
-      <Suspense fallback={null}>
+      {!showPublicNav && <a className="skip-link" href="#main">Skip to content</a>}
+      <main id="main" tabIndex={-1} style={{ outline: 'none' }}>
+      <Suspense fallback={<div style={{ minHeight: '70vh' }} aria-busy="true" />}>
         <Routes>
           <Route path="/"          element={<Home />} />
           <Route path="/about"     element={<About />} />
@@ -69,6 +73,8 @@ export default function App() {
           <Route path="*"          element={<NotFound />} />
         </Routes>
       </Suspense>
+      </main>
+      {showFooter && <Footer />}
 
       <Toast />
       <Modal />

@@ -4,6 +4,8 @@ import { supabase } from '../../../lib/supabase';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { MONTHS } from '../../../data/constants';
 import { pad, dateKeyIn, timeIn } from '../../../lib/time';
+import Icon from '../../../components/ui/Icon';
+import Field from '../../../components/ui/Field';
 
 const SUBJECTS = ['Conversational English', 'IELTS Preparation', 'Business English', 'Grammar Focus'];
 
@@ -82,20 +84,20 @@ export default function BookingView({ onBuyCredits }) {
       <DashHeader title="Book a Lesson" />
       <div className="dash-main">
         <div style={{ background: 'rgba(212,96,138,.06)', border: '1px solid rgba(212,96,138,.15)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '.85rem', color: 'var(--navy)', fontWeight: 500 }}>🎟 You have <strong>{credits}</strong> credits</span>
+          <span style={{ fontSize: '.85rem', color: 'var(--navy)', fontWeight: 500 }}><Icon name="credits" /> You have <strong>{credits}</strong> credits</span>
           <span style={{ fontSize: '.78rem', color: 'var(--ink-muted)' }}>· 1 credit = 1 × 45-min lesson</span>
           <button className="btn btn-outline btn-sm" style={{ marginLeft: 'auto' }} onClick={onBuyCredits}>Buy more</button>
         </div>
 
         <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 12 }}>
-          🌍 Times shown in <strong>{tz.replace(/_/g, ' ')}</strong> (your time zone)
+          <Icon name="globe" /> Times shown in <strong>{tz.replace(/_/g, ' ')}</strong> (your time zone)
         </p>
 
         <div className="booking-flow">
           <div className="card card-pad">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
               <button className="btn btn-ghost btn-sm" disabled={isCurrentMonth} onClick={() => changeMonth(-1)}>← Prev</button>
-              <h3 style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 600, color: 'var(--navy)' }}>{MONTHS[month]} {year}</h3>
+              <h3 style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--navy)' }} aria-live="polite">{MONTHS[month]} {year}</h3>
               <button className="btn btn-ghost btn-sm" onClick={() => changeMonth(1)}>Next →</button>
             </div>
             <div className="cal-grid">
@@ -140,18 +142,19 @@ export default function BookingView({ onBuyCredits }) {
               <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)', marginBottom: 20 }}>{loading ? 'Loading times…' : 'Select a date first.'}</p>
             )}
 
-            <div className="form-group">
-              <label>Subject</label>
-              <select value={subject} onChange={e => setSubject(e.target.value)}>
-                {SUBJECTS.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
+            <Field label="Subject">
+              {id => (
+                <select id={id} value={subject} onChange={e => setSubject(e.target.value)}>
+                  {SUBJECTS.map(s => <option key={s}>{s}</option>)}
+                </select>
+              )}
+            </Field>
 
             {selectedLabel && (
               <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 16, fontSize: '.85rem', color: 'var(--ink-soft)' }}>
-                <strong>📅 {selectedLabel}</strong><br />
-                📘 {subject}<br />
-                🎥 Google Meet link sent on confirmation
+                <strong><Icon name="calendar" /> {selectedLabel}</strong><br />
+                <Icon name="books" /> {subject}<br />
+                <Icon name="video" /> Google Meet link sent on confirmation
               </div>
             )}
 

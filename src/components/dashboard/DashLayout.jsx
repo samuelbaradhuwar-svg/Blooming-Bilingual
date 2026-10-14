@@ -1,11 +1,21 @@
-import { useState } from 'react';
-import Sidebar from './Sidebar';
+import { createContext, useContext, useState } from 'react';
+import { useApp } from '../../context/AppContext';
+import Sidebar, { STUDENT_NAV } from './Sidebar';
+import Icon from '../ui/Icon';
+
+// Short labels for the phone tab bar (the sidebar keeps the longer ones).
+const TAB_LABELS = { home: 'Home', booking: 'Book', lessons: 'Lessons', resources: 'Files', credits: 'Credits', progress: 'Progress' };
+
+const BurgerCtx = createContext(() => {});
+export const useBurger = () => useContext(BurgerCtx);
 
 export default function DashLayout({ activeView, onSwitch, children }) {
+  const { currentUser } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isStudent = currentUser?.role !== 'admin';
 
   return (
-    <div className="dash-layout">
+    <div className={`dash-layout ${isStudent ? 'has-tabs' : ''}`}>
       <Sidebar
         activeView={activeView}
         onSwitch={onSwitch}
@@ -13,20 +23,27 @@ export default function DashLayout({ activeView, onSwitch, children }) {
         onClose={() => setSidebarOpen(false)}
       />
       <div className="dash-content">
-        {/* Inject burger toggle into children via a wrapper header */}
-        <DashHeaderWrapper onBurger={() => setSidebarOpen(o => !o)}>
+        <BurgerCtx.Provider value={() => setSidebarOpen(o => !o)}>
           {children}
-        </DashHeaderWrapper>
+        </BurgerCtx.Provider>
       </div>
+
+      {/* Students on a phone get one-tap navigation along the bottom */}
+      {isStudent && (
+        <nav className="bottom-tabs" aria-label="Student sections">
+          {STUDENT_NAV.map(item => (
+            <button
+              key={item.view}
+              className={`tab-link ${activeView === item.view ? 'active' : ''}`}
+              onClick={() => onSwitch(item.view)}
+              aria-current={activeView === item.view ? 'page' : undefined}
+            >
+              <Icon name={item.icon} weight={activeView === item.view ? 'fill' : 'regular'} />
+              {TAB_LABELS[item.view]}
+            </button>
+          ))}
+        </nav>
+      )}
     </div>
   );
-}
-
-/* Wraps the active view and injects a burger button into the first .dash-header via React context */
-import { createContext, useContext } from 'react';
-const BurgerCtx = createContext(() => {});
-export const useBurger = () => useContext(BurgerCtx);
-
-function DashHeaderWrapper({ onBurger, children }) {
-  return <BurgerCtx.Provider value={onBurger}>{children}</BurgerCtx.Provider>;
 }

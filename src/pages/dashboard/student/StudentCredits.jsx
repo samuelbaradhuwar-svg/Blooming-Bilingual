@@ -3,6 +3,7 @@ import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { formatMoney } from '../../../data/constants';
+import Icon from '../../../components/ui/Icon';
 
 const REASONS = { purchase: 'Purchased credits', booking: 'Booked a lesson', refund: 'Refund', adjustment: 'Adjusted by Neeliën' };
 const when = (iso) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
@@ -32,7 +33,7 @@ export default function StudentCredits({ onBuyCredits }) {
   return (
     <>
       <DashHeader title="Credits & Billing">
-        <button className="btn btn-primary btn-sm" onClick={onBuyCredits}>🎟 Buy Credits</button>
+        <button className="btn btn-primary btn-sm" onClick={onBuyCredits}><Icon name="credits" /> Buy Credits</button>
       </DashHeader>
       <div className="dash-main">
         <div className="dash-grid-4" style={{ marginBottom: 16 }}>
@@ -43,7 +44,7 @@ export default function StudentCredits({ onBuyCredits }) {
 
         <div className="dash-grid">
           <div className="card card-pad">
-            <div className="card-title" style={{ marginBottom: 10 }}>💳 Payments</div>
+            <div className="card-title" style={{ marginBottom: 10 }}><Icon name="card" /> Payments</div>
             {orders === null ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
               : orders.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No payments yet. When you buy credits, your receipts appear here.</p>
               : orders.map(o => (
@@ -59,7 +60,7 @@ export default function StudentCredits({ onBuyCredits }) {
           </div>
 
           <div className="card card-pad">
-            <div className="card-title" style={{ marginBottom: 10 }}>🎟 Credit history</div>
+            <div className="card-title" style={{ marginBottom: 10 }}><Icon name="credits" /> Credit history</div>
             {ledger === null ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
               : ledger.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Nothing yet.</p>
               : ledger.map(r => (

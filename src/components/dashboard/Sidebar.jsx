@@ -2,29 +2,30 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import Icon from '../ui/Icon';
 
-const STUDENT_NAV = [
-  { view: 'home',     icon: '🏠', label: 'Dashboard' },
-  { view: 'booking',  icon: '📅', label: 'Book a Lesson' },
-  { view: 'lessons',  icon: '🎓', label: 'My Lessons' },
-  { view: 'resources',icon: '📁', label: 'Resources' },
-  { view: 'credits',  icon: '🎟', label: 'Credits & Billing' },
-  { view: 'progress', icon: '📊', label: 'My Progress' },
+export const STUDENT_NAV = [
+  { view: 'home',      icon: 'home',     label: 'Dashboard' },
+  { view: 'booking',   icon: 'calendar', label: 'Book a Lesson' },
+  { view: 'lessons',   icon: 'lessons',  label: 'My Lessons' },
+  { view: 'resources', icon: 'files',    label: 'Files' },
+  { view: 'credits',   icon: 'credits',  label: 'Credits & Billing' },
+  { view: 'progress',  icon: 'progress', label: 'My Progress' },
 ];
 
 const ADMIN_NAV = [
-  { view: 'admin-home',      icon: '🏠', label: 'Dashboard',   section: 'Overview' },
-  { view: 'admin-students',  icon: '👥', label: 'Students' },
-  { view: 'admin-bookings',  icon: '📅', label: 'Bookings' },
-  { view: 'admin-messages',  icon: '✉️', label: 'Messages' },
-  { view: 'admin-lessons',   icon: '🎓', label: 'Lessons',     section: 'Content' },
-  { view: 'admin-resources', icon: '📁', label: 'Student files' },
-  { view: 'admin-billing',   icon: '💰', label: 'Invoices',    section: 'Finance' },
-  { view: 'admin-settings',  icon: '⚙️', label: 'Hours & leave' },
+  { view: 'admin-home',      icon: 'home',     label: 'Dashboard',    section: 'Overview' },
+  { view: 'admin-students',  icon: 'students', label: 'Students' },
+  { view: 'admin-bookings',  icon: 'calendar', label: 'Bookings' },
+  { view: 'admin-messages',  icon: 'mail',     label: 'Messages' },
+  { view: 'admin-lessons',   icon: 'lessons',  label: 'Lessons',      section: 'Content' },
+  { view: 'admin-resources', icon: 'files',    label: 'Student files' },
+  { view: 'admin-billing',   icon: 'money',    label: 'Invoices',     section: 'Finance' },
+  { view: 'admin-settings',  icon: 'clock',    label: 'Hours & leave' },
 ];
 
 export default function Sidebar({ activeView, onSwitch, open, onClose }) {
-  const { currentUser, logout, showToast } = useApp();
+  const { currentUser, logout } = useApp();
   const navigate = useNavigate();
   const isAdmin = currentUser?.role === 'admin';
   const nav = isAdmin ? ADMIN_NAV : STUDENT_NAV;
@@ -51,10 +52,10 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
       {/* Overlay (mobile) */}
       {open && <div className="sidebar-overlay" onClick={onClose} />}
 
-      <aside className={`sidebar ${open ? 'open' : ''}`}>
+      <aside className={`sidebar ${open ? 'open' : ''}`} aria-label="Dashboard navigation">
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">🌸</div>
+          <div className="sidebar-logo-icon"><Icon name="logo" weight="fill" /></div>
           <div>
             <div className="sidebar-logo-name">Blooming Bilingual</div>
             <div className="sidebar-logo-sub">{isAdmin ? 'Tutor Portal' : 'Student Portal'}</div>
@@ -63,22 +64,23 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
 
         {/* Credit widget (students only) */}
         {!isAdmin && (
-          <div
+          <button
             className="sidebar-credit-widget"
             onClick={() => { onSwitch('credits'); onClose(); }}
+            aria-label={`${currentUser?.credits ?? 0} credits. Open Credits & Billing`}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-              <span style={{ fontSize: '.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', opacity: .6 }}>🎟 My Credits</span>
-              <span style={{ fontSize: '.65rem', opacity: .75, textDecoration: 'underline' }}>Buy more</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', opacity: .85 }}><Icon name="credits" weight="fill" /> My Credits</span>
+              <span style={{ fontSize: '.75rem', opacity: .9, textDecoration: 'underline', textUnderlineOffset: 3 }}>Buy more</span>
             </div>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.7rem', fontWeight: 700, lineHeight: 1 }}>
+            <div style={{ fontSize: '2rem', fontWeight: 800, lineHeight: 1, letterSpacing: '-0.02em' }}>
               {currentUser?.credits ?? 0}
             </div>
-            <div style={{ fontSize: '.66rem', opacity: .6, margin: '1px 0 8px' }}>credits · 45 min each</div>
-            <div style={{ height: 4, borderRadius: 10, background: 'rgba(255,255,255,.18)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(((currentUser?.credits || 0) / 8) * 100, 100)}%`, background: '#E8829F', borderRadius: 10 }} />
+            <div style={{ fontSize: '.78rem', opacity: .8, margin: '2px 0 10px' }}>credits · 45 min each</div>
+            <div style={{ height: 4, borderRadius: 10, background: 'rgba(255,255,255,.2)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${Math.min(((currentUser?.credits || 0) / 8) * 100, 100)}%`, background: '#F7C6D6', borderRadius: 10 }} />
             </div>
-          </div>
+          </button>
         )}
 
         {/* Nav links */}
@@ -91,8 +93,9 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
               <button
                 className={`sidebar-link ${activeView === item.view ? 'active' : ''}`}
                 onClick={() => { onSwitch(item.view); onClose(); }}
+                aria-current={activeView === item.view ? 'page' : undefined}
               >
-                <span className="sl-icon">{item.icon}</span>
+                <span className="sl-icon"><Icon name={item.icon} weight={activeView === item.view ? 'fill' : 'regular'} /></span>
                 {item.label}
                 {item.view === 'admin-messages' && newMessages > 0 && (
                   <span style={{ marginLeft: 'auto', background: '#D4608A', color: 'white', fontSize: '.65rem', fontWeight: 700, borderRadius: 50, padding: '1px 7px' }}>{newMessages}</span>
@@ -104,7 +107,7 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
 
         {/* Footer */}
         <div className="sidebar-footer">
-          <div className="sidebar-user" onClick={() => showToast('Profile settings coming soon.', 'info')}>
+          <div className="sidebar-user">
             <div className="sidebar-user-avatar" style={{ background: currentUser?.color }}>
               {currentUser?.initials}
             </div>
@@ -112,10 +115,9 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
               <div className="sidebar-user-name">{currentUser?.name}</div>
               <div className="sidebar-user-role">{isAdmin ? 'Tutor · Admin' : 'Student'}</div>
             </div>
-            <span style={{ marginLeft: 'auto', fontSize: '.7rem', color: 'var(--ink-muted)' }}>⋯</span>
           </div>
           <button className="sidebar-link" onClick={handleLogout} style={{ color: 'var(--red)', marginTop: 4 }}>
-            <span className="sl-icon">🚪</span> Sign Out
+            <span className="sl-icon"><Icon name="signout" /></span> Sign Out
           </button>
         </div>
       </aside>

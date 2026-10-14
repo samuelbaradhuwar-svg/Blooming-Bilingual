@@ -1,62 +1,92 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import Icon from './ui/Icon';
+
+const LINKS = [
+  { icon: 'logo',     label: 'About',   long: 'About Neeliën',     sub: 'Meet your tutor and her background',  path: '/about' },
+  { icon: 'lessons',  label: 'Services', long: 'Services',          sub: 'Conversation, exam prep, business & more', path: '/services' },
+  { icon: 'credits',  label: 'Pricing',  long: 'Pricing & Credits', sub: '1 credit = one 45-minute lesson',     path: '/pricing' },
+  { icon: 'mail',     label: 'Contact',  long: 'Contact',           sub: 'Ask a question before you start',     path: '/contact' },
+];
 
 export default function PublicNav() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { currentUser } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const close = () => setMenuOpen(false);
   const go = (path) => { navigate(path); close(); };
 
+  // Close the drawer when the page changes or Escape is pressed.
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setMenuOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
+
+  const isActive = (path) => pathname === path;
+
   return (
     <>
-      <nav className="public-nav">
-        <div className="nav-brand" onClick={() => navigate('/')}>
-          <div className="nav-brand-icon">🌸</div>
-          <div className="nav-brand-name">The Blooming Bilingual</div>
-        </div>
+      <a className="skip-link" href="#main">Skip to content</a>
+      <header className="public-nav">
+        <Link to="/" className="nav-brand" aria-label="The Blooming Bilingual, home">
+          <span className="nav-brand-icon"><Icon name="logo" weight="fill" /></span>
+          <span className="nav-brand-name">The Blooming Bilingual</span>
+        </Link>
+
+        <nav className="nav-links" aria-label="Main">
+          {LINKS.map(l => (
+            <Link key={l.path} to={l.path} className={`nav-link ${isActive(l.path) ? 'active' : ''}`} aria-current={isActive(l.path) ? 'page' : undefined}>{l.label}</Link>
+          ))}
+        </nav>
+
         <div className="nav-actions">
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate(currentUser ? '/dashboard' : '/login')}>{currentUser ? 'My Dashboard' : 'Student Login'}</button>
+          {currentUser ? (
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/dashboard')}>My Dashboard</button>
+          ) : (
+            <>
+              <button className="btn btn-ghost btn-sm nav-login" onClick={() => navigate('/login')}>Student Login</button>
+              <button className="btn btn-primary btn-sm nav-cta" onClick={() => navigate('/register')}>Get Started</button>
+            </>
+          )}
           <button
             className={`burger-btn ${menuOpen ? 'open' : ''}`}
             onClick={() => setMenuOpen(o => !o)}
-            aria-label="Menu"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="site-menu"
           >
             <span /><span /><span />
           </button>
         </div>
-      </nav>
+      </header>
 
-      {/* Overlay */}
       <div className={`menu-overlay ${menuOpen ? 'open' : ''}`} onClick={close} />
 
-      {/* Drawer */}
-      <div className={`menu-drawer ${menuOpen ? 'open' : ''}`}>
+      <div id="site-menu" className={`menu-drawer ${menuOpen ? 'open' : ''}`} aria-hidden={!menuOpen}>
         <div className="menu-drawer-header">
-          <div className="nav-brand" onClick={() => go('/')}>
-            <div className="nav-brand-icon">🌸</div>
-            <div className="nav-brand-name">The Blooming Bilingual</div>
-          </div>
-          <button className="menu-close-btn" onClick={close} aria-label="Close menu">✕</button>
+          <Link to="/" className="nav-brand" onClick={close}>
+            <span className="nav-brand-icon"><Icon name="logo" weight="fill" /></span>
+            <span className="nav-brand-name">The Blooming Bilingual</span>
+          </Link>
+          <button className="menu-close-btn" onClick={close} aria-label="Close menu"><Icon name="close" /></button>
         </div>
 
-        <nav className="menu-nav">
-          {[
-            { icon: '🌸', label: 'About Neeliën',      sub: 'Meet your tutor, qualifications & intro video', path: '/about' },
-            { icon: '🎓', label: 'Services',            sub: 'Conversational, exam prep, business & more',     path: '/services' },
-            { icon: '🎟', label: 'Pricing & Credits',   sub: '1 credit = 1 × 45-min lesson',                  path: '/pricing' },
-            { icon: '✉️', label: 'Contact',             sub: 'Get in touch before you start',                  path: '/contact' },
-          ].map(item => (
-            <button key={item.path} className="menu-link" onClick={() => go(item.path)}>
-              <div className="menu-link-icon">{item.icon}</div>
-              <div className="menu-link-text">
-                <strong>{item.label}</strong>
+        <nav className="menu-nav" aria-label="Site">
+          {LINKS.map(item => (
+            <Link key={item.path} to={item.path} className={`menu-link ${isActive(item.path) ? 'active' : ''}`} onClick={close}>
+              <span className="menu-link-icon"><Icon name={item.icon} /></span>
+              <span className="menu-link-text">
+                <strong>{item.long}</strong>
                 <span>{item.sub}</span>
-              </div>
-              <span className="menu-link-arrow">→</span>
-            </button>
+              </span>
+              <Icon name="arrow" className="menu-link-arrow" />
+            </Link>
           ))}
         </nav>
 
@@ -64,15 +94,13 @@ export default function PublicNav() {
 
         <div className="menu-cta">
           {currentUser ? (
-            <button className="btn btn-primary btn-full" onClick={() => go('/dashboard')}>Go to my dashboard →</button>
+            <button className="btn btn-primary btn-full" onClick={() => go('/dashboard')}>Go to My Dashboard</button>
           ) : (
             <>
               <button className="btn btn-primary btn-full" style={{ marginBottom: 10 }} onClick={() => go('/register')}>
-                🌱 Create Account & Buy Credits
+                Create Account & Buy Credits
               </button>
-              <button className="btn btn-ghost btn-full" onClick={() => go('/login')}>
-                Student Login →
-              </button>
+              <button className="btn btn-ghost btn-full" onClick={() => go('/login')}>Student Login</button>
             </>
           )}
         </div>

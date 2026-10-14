@@ -19,7 +19,7 @@ export function PaymentReturn() {
     captureOrder(orderId)
       .then(async (res) => {
         await refreshCredits();
-        showToast(`${res.credits} credit${res.credits > 1 ? 's' : ''} added. Thank you! 🌸`, 'success');
+        showToast(`${res.credits} credit${res.credits > 1 ? 's' : ''} added. Thank you!`, 'success');
         navigate('/dashboard', { replace: true });
       })
       .catch((e) => setState({ status: 'error', message: e.message }));

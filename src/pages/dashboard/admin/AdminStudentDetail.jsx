@@ -6,6 +6,8 @@ import { supabase } from '../../../lib/supabase';
 import { UploadForm, FileList } from '../../../components/FileExchange';
 import { longDateIn, shortDateIn, timeIn } from '../../../lib/time';
 import AdjustCredits from './AdjustCredits';
+import Icon from '../../../components/ui/Icon';
+import Field from '../../../components/ui/Field';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const REASONS = { purchase: 'Purchased credits', booking: 'Booked a lesson', refund: 'Refund', adjustment: 'Adjusted by tutor' };
@@ -64,50 +66,50 @@ export default function AdminStudentDetail({ id }) {
         </p>
 
         <div className="dash-grid-4" style={{ marginBottom: 16 }}>
-          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--green-bg)' }}>📈</div><div className="stat-num">{p.english_level || '—'}</div><div className="stat-label">English level</div></div>
-          <div className="stat-card"><div className="stat-icon" style={{ background: 'rgba(212,96,138,.08)' }}>🎟</div><div className="stat-num" style={{ color: credits > 0 ? undefined : 'var(--red)' }}>{credits}</div><div className="stat-label">Credits</div></div>
-          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--orange-bg)' }}>📅</div><div className="stat-num">{upcoming.length}</div><div className="stat-label">Upcoming lessons</div></div>
-          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--purple-bg)' }}>📁</div><div className="stat-num">{resources.length}</div><div className="stat-label">Files exchanged</div></div>
+          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--green-bg)' }}><Icon name="progress" /></div><div className="stat-num">{p.english_level || '—'}</div><div className="stat-label">English level</div></div>
+          <div className="stat-card"><div className="stat-icon" style={{ background: 'rgba(184,65,107,.1)' }}><Icon name="credits" /></div><div className="stat-num" style={{ color: credits > 0 ? undefined : 'var(--red)' }}>{credits}</div><div className="stat-label">Credits</div></div>
+          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--orange-bg)' }}><Icon name="calendar" /></div><div className="stat-num">{upcoming.length}</div><div className="stat-label">Upcoming lessons</div></div>
+          <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--purple-bg)' }}><Icon name="files" /></div><div className="stat-num">{resources.length}</div><div className="stat-label">Files exchanged</div></div>
         </div>
 
         <div className="dash-grid">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: 10 }}>📅 Next lesson</div>
+              <div className="card-title" style={{ marginBottom: 10 }}><Icon name="calendar" /> Next lesson</div>
               {next ? (
                 <div style={{ background: 'linear-gradient(130deg,var(--navy),#6B2045)', borderRadius: 'var(--radius-sm)', padding: 16, color: 'white' }}>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1.1rem', fontWeight: 600 }}>{longDateIn(tz, new Date(next.starts_at))} · {timeIn(tz, new Date(next.starts_at))}</div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{longDateIn(tz, new Date(next.starts_at))} · {timeIn(tz, new Date(next.starts_at))}</div>
                   <div style={{ fontSize: '.8rem', opacity: .8, marginTop: 4 }}>{next.subject} · for the student: {shortDateIn(studentTz, new Date(next.starts_at))} {timeIn(studentTz, new Date(next.starts_at))} ({studentTz.replace(/_/g, ' ')})</div>
-                  {next.meet_url && <a className="join-btn" style={{ marginTop: 10, display: 'inline-block' }} href={next.meet_url} target="_blank" rel="noreferrer">🎥 Join</a>}
+                  {next.meet_url && <a className="join-btn" style={{ marginTop: 10, display: 'inline-block' }} href={next.meet_url} target="_blank" rel="noreferrer"><Icon name="video" weight="fill" /> Join</a>}
                 </div>
               ) : <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No lesson booked.</p>}
               {upcoming.length > 1 && <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginTop: 10 }}>+ {upcoming.length - 1} more: {upcoming.slice(1, 4).map(b => shortDateIn(tz, new Date(b.starts_at))).join(', ')}{upcoming.length > 4 ? '…' : ''}</p>}
             </div>
 
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: 10 }}>📝 Level & plan</div>
-              <div className="form-group">
-                <label>English level (you decide)</label>
-                <select value={level} onChange={e => setLevel(e.target.value)} style={{ maxWidth: 200 }}>
-                  <option value="">Not assessed yet</option>
-                  {LEVELS.map(l => <option key={l}>{l}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Plan for the next lesson — the student can see this</label>
-                <textarea rows={3} maxLength={1000} value={focus} onChange={e => setFocus(e.target.value)} placeholder="e.g. Practise past tenses; bring your essay draft." />
-              </div>
+              <div className="card-title" style={{ marginBottom: 10 }}><Icon name="notes" /> Level & plan</div>
+              <Field label="English level (you decide)">
+                {id => (
+                  <select id={id} value={level} onChange={e => setLevel(e.target.value)} style={{ maxWidth: 200 }}>
+                    <option value="">Not assessed yet</option>
+                    {LEVELS.map(l => <option key={l}>{l}</option>)}
+                  </select>
+                )}
+              </Field>
+              <Field label="Plan for the next lesson (the student can see this)">
+                {id => <textarea id={id} rows={3} maxLength={1000} value={focus} onChange={e => setFocus(e.target.value)} placeholder="e.g. Practise past tenses; bring your essay draft…" />}
+              </Field>
               <button className="btn btn-primary btn-sm" disabled={!dirty || busy} onClick={save}>{busy ? 'Saving…' : 'Save'}</button>
             </div>
 
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: 6 }}>🎓 Lesson history ({past.length})</div>
+              <div className="card-title" style={{ marginBottom: 6 }}><Icon name="lessons" /> Lesson history ({past.length})</div>
               {past.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No past lessons yet.</p> : past.slice(0, 10).map(b => (
                 <div key={b.id} className="hw-item" style={{ flexWrap: 'wrap' }}>
                   <div className="hw-info" style={{ flex: 1, minWidth: 180 }}>
                     <strong>{shortDateIn(tz, new Date(b.starts_at))} · {b.subject}</strong>
-                    {notes[b.id]?.summary && <span>📝 {notes[b.id].summary}</span>}
-                    {notes[b.id]?.homework && <span>📚 Homework: {notes[b.id].homework}</span>}
+                    {notes[b.id]?.summary && <span><Icon name="notes" /> {notes[b.id].summary}</span>}
+                    {notes[b.id]?.homework && <span><Icon name="books" /> Homework: {notes[b.id].homework}</span>}
                   </div>
                   <span style={{ fontSize: '.7rem', color: b.status === 'cancelled' ? 'var(--red)' : 'var(--ink-muted)' }}>{b.status === 'cancelled' ? 'Cancelled' : 'Done'}</span>
                 </div>
@@ -118,7 +120,7 @@ export default function AdminStudentDetail({ id }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="card card-pad">
               <div className="card-header">
-                <span className="card-title">🎟 Credits</span>
+                <span className="card-title"><Icon name="credits" /> Credits</span>
                 <button className="card-link" onClick={() => openModal('Adjust credits', <AdjustCredits student={{ id, full_name: p.full_name, credits }} onDone={load} />)}>Adjust</button>
               </div>
               {ledger.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No credit activity yet.</p> : ledger.slice(0, 8).map(x => (
@@ -130,9 +132,9 @@ export default function AdminStudentDetail({ id }) {
             </div>
 
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: 4 }}>📁 Files with {p.full_name?.split(' ')[0] || 'student'} ({resources.length})</div>
+              <div className="card-title" style={{ marginBottom: 4 }}><Icon name="files" /> Files with {p.full_name?.split(' ')[0] || 'student'} ({resources.length})</div>
               <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 10 }}>Private between you and this student.</p>
-              <UploadForm studentId={id} onDone={load} label="⬆ Send to student" />
+              <UploadForm studentId={id} onDone={load} label="Send to student" />
               <FileList items={resources} who={r => r.uploader_id === id ? 'From student' : 'Sent by you'} canDelete={() => true} onChange={load} empty="No files yet." />
             </div>
           </div>

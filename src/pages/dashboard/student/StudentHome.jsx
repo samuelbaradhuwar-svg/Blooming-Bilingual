@@ -4,6 +4,7 @@ import { supabase } from '../../../lib/supabase';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { getGreeting } from '../../../data/constants';
 import { longDateIn, timeIn } from '../../../lib/time';
+import Icon from '../../../components/ui/Icon';
 
 const SKILLS = [
   ['grammar', 'Grammar', 'var(--blue)'],
@@ -45,26 +46,26 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
   }, []);
 
   const stats = [
-    { icon: '🎓', bg: 'rgba(212,96,138,.08)', num: d?.done ?? '–', label: 'Lessons completed', go: 'lessons' },
-    { icon: '📅', bg: 'var(--orange-bg)', num: d?.upcoming ?? '–', label: 'Upcoming lessons', go: 'lessons' },
-    { icon: '📈', bg: 'var(--green-bg)', num: d ? (d.level ?? '—') : '–', label: 'Current level', go: 'progress' },
-    { icon: '📁', bg: 'var(--purple-bg)', num: d?.resourceCount ?? '–', label: 'Files', go: 'resources' },
+    { icon: 'lessons', bg: 'rgba(184,65,107,.1)', num: d?.done ?? '–', label: 'Lessons completed', go: 'lessons' },
+    { icon: 'calendar', bg: 'var(--orange-bg)', num: d?.upcoming ?? '–', label: 'Upcoming lessons', go: 'lessons' },
+    { icon: 'progress', bg: 'var(--green-bg)', num: d ? (d.level ?? '—') : '–', label: 'Current level', go: 'progress' },
+    { icon: 'files', bg: 'var(--purple-bg)', num: d?.resourceCount ?? '–', label: 'Files', go: 'resources' },
   ];
 
   return (
     <>
-      <DashHeader title={`${greeting}, ${name} 👋`}>
-        <button className="btn btn-primary btn-sm" onClick={onBuyCredits}>🎟 Buy Credits</button>
+      <DashHeader title={`${greeting}, ${name}`}>
+        <button className="btn btn-primary btn-sm" onClick={onBuyCredits}><Icon name="credits" /> Buy Credits</button>
       </DashHeader>
 
       <div className="dash-main">
         <div className="dash-grid-4" style={{ marginBottom: 16 }}>
           {stats.map(s => (
-            <div key={s.label} className="stat-card" onClick={s.go ? () => onSwitch(s.go) : undefined} style={s.go ? { cursor: 'pointer' } : undefined}>
-              <div className="stat-icon" style={{ background: s.bg }}>{s.icon}</div>
+            <button key={s.label} type="button" className="stat-card" onClick={() => onSwitch(s.go)}>
+              <div className="stat-icon" style={{ background: s.bg }}><Icon name={s.icon} /></div>
               <div className="stat-num">{s.num}</div>
               <div className="stat-label">{s.label}</div>
-            </div>
+            </button>
           ))}
         </div>
 
@@ -72,7 +73,7 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="card card-pad">
               <div className="card-header">
-                <span className="card-title">📅 Upcoming Lesson</span>
+                <span className="card-title"><Icon name="calendar" /> Upcoming Lesson</span>
                 <button className="card-link" onClick={() => onSwitch('booking')}>Book more</button>
               </div>
               {d?.next ? (
@@ -81,9 +82,9 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
                     <div style={{ fontSize: '.65rem', fontWeight: 700, textTransform: 'uppercase', opacity: .6, marginBottom: 4 }}>
                       Next · {longDateIn(tz, new Date(d.next.starts_at))} {timeIn(tz, new Date(d.next.starts_at))}
                     </div>
-                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '1rem', fontWeight: 600, marginBottom: 10 }}>{d.next.subject}</div>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: 10 }}>{d.next.subject}</div>
                     {d.next.meet_url
-                      ? <a className="join-btn" href={d.next.meet_url} target="_blank" rel="noreferrer">🎥 Join Lesson</a>
+                      ? <a className="join-btn" href={d.next.meet_url} target="_blank" rel="noreferrer"><Icon name="video" weight="fill" /> Join Lesson</a>
                       : <button className="join-btn" onClick={() => onSwitch('lessons')}>View details</button>}
                   </div>
                   {currentUser?.nextLessonFocus && (
@@ -110,7 +111,7 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
 
             <div className="card card-pad">
               <div className="card-header">
-                <span className="card-title">📁 Recent files</span>
+                <span className="card-title"><Icon name="files" /> Recent files</span>
                 <button className="card-link" onClick={() => onSwitch('resources')}>View all</button>
               </div>
               {!d ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
@@ -140,11 +141,11 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
             </div>
 
             <div className="card card-pad" style={{ textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: '2.5rem', fontWeight: 700, color: 'var(--navy)' }}>
+              <div style={{ fontSize: '2.6rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--navy)', fontVariantNumeric: 'tabular-nums' }}>
                 {currentUser?.credits ?? 0}
               </div>
               <div style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 12 }}>credits available</div>
-              <button className="btn btn-primary btn-sm" onClick={onBuyCredits}>🎟 Buy More</button>
+              <button className="btn btn-primary btn-sm" onClick={onBuyCredits}><Icon name="credits" /> Buy More</button>
             </div>
           </div>
         </div>

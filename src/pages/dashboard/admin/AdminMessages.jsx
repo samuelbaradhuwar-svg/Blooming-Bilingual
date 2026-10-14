@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
+import Icon from '../../../components/ui/Icon';
 
 const when = (iso) => new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
@@ -51,7 +52,7 @@ export default function AdminMessages() {
         <div className="card card-pad">
           <div className="card-title" style={{ marginBottom: 8 }}>Inbox{rows ? ` (${rows.length}${unread ? ` · ${unread} new` : ''})` : ''}</div>
           {rows === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p>
-            : rows.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No messages yet. ✨</p>
+            : rows.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No messages yet. New ones from the Contact page appear here.</p>
             : rows.map(m => (
               <div key={m.id} style={{ padding: '14px 0', borderTop: '1px solid var(--border-soft, rgba(0,0,0,.07))' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', alignItems: 'baseline' }}>
@@ -64,7 +65,7 @@ export default function AdminMessages() {
                 <div style={{ fontSize: '.78rem', color: 'var(--ink-muted)', margin: '2px 0 6px' }}>{m.subject}</div>
                 <p style={{ fontSize: '.88rem', color: 'var(--ink-soft)', margin: '0 0 10px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.message}</p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <button className="btn btn-primary btn-sm" onClick={() => reply(m)}>✉️ Reply</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => reply(m)}><Icon name="mail" /> Reply</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => toggleRead(m)}>{m.is_read ? 'Mark as new' : 'Mark as read'}</button>
                   <button className="btn btn-ghost btn-sm" onClick={() => remove(m)}>Delete</button>
                 </div>

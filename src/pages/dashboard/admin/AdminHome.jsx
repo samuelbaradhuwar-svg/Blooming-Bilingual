@@ -4,6 +4,7 @@ import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { getGreeting, formatMoney } from '../../../data/constants';
 import { dateKeyIn, timeIn, shortDateIn } from '../../../lib/time';
+import Icon from '../../../components/ui/Icon';
 
 
 export default function AdminHome({ onSwitch }) {
@@ -38,31 +39,31 @@ export default function AdminHome({ onSwitch }) {
   const month = new Date().toLocaleDateString(undefined, { month: 'long' });
 
   const stats = data && [
-    { icon: '👥', bg: 'rgba(212,96,138,.08)', num: data.students.length, label: 'Students', go: 'admin-students' },
-    { icon: '💰', bg: 'var(--green-bg)', num: formatMoney(data.revenue), label: `Revenue · ${month}`, go: 'admin-billing' },
-    { icon: '📅', bg: 'var(--orange-bg)', num: todays.length, label: 'Lessons today', go: 'admin-bookings' },
-    { icon: '📝', bg: 'var(--red-bg)', num: data.toReview, label: 'Lessons to wrap up', go: 'admin-lessons' },
+    { icon: 'students', bg: 'rgba(184,65,107,.1)', num: data.students.length, label: 'Students', go: 'admin-students' },
+    { icon: 'money', bg: 'var(--green-bg)', num: formatMoney(data.revenue), label: `Revenue · ${month}`, go: 'admin-billing' },
+    { icon: 'calendar', bg: 'var(--orange-bg)', num: todays.length, label: 'Lessons today', go: 'admin-bookings' },
+    { icon: 'notes', bg: 'var(--red-bg)', num: data.toReview, label: 'Lessons to wrap up', go: 'admin-lessons' },
   ];
 
   return (
     <>
-      <DashHeader title={`${getGreeting()}, ${first} 🌸`} />
+      <DashHeader title={`${getGreeting()}, ${first}`} />
       <div className="dash-main">
         {!data ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p> : (
           <>
             <div className="dash-grid-4" style={{ marginBottom: 16 }}>
               {stats.map(s => (
-                <div key={s.label} className="stat-card" style={{ cursor: 'pointer' }} onClick={() => onSwitch(s.go)}>
-                  <div className="stat-icon" style={{ background: s.bg }}>{s.icon}</div>
+                <button key={s.label} type="button" className="stat-card" onClick={() => onSwitch(s.go)}>
+                  <div className="stat-icon" style={{ background: s.bg }}><Icon name={s.icon} /></div>
                   <div className="stat-num">{s.num}</div>
                   <div className="stat-label">{s.label}</div>
-                </div>
+                </button>
               ))}
             </div>
 
             <div className="card card-pad">
               <div className="card-header">
-                <span className="card-title">📅 Coming up</span>
+                <span className="card-title"><Icon name="calendar" /> Coming up</span>
                 <button className="card-link" onClick={() => onSwitch('admin-bookings')}>All bookings →</button>
               </div>
               {data.upcoming.length === 0 ? (

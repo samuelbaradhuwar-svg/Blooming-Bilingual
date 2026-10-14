@@ -3,6 +3,7 @@ import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { longDateIn } from '../../../lib/time';
+import Icon from '../../../components/ui/Icon';
 
 export const SKILLS = [
   ['grammar', 'Grammar', 'var(--blue)'],
@@ -48,11 +49,11 @@ export default function StudentProgress({ onSwitch }) {
 
         <div className="dash-grid">
           <div className="card card-pad">
-            <div className="card-title" style={{ marginBottom: 12 }}>📝 Lesson notes</div>
+            <div className="card-title" style={{ marginBottom: 12 }}><Icon name="notes" /> Lesson notes</div>
             {!d ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
               : notes.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: 8 }}>🌱</div>
+                  <div style={{ fontSize: '2.2rem', marginBottom: 8, color: 'var(--blue)', display: 'flex', justifyContent: 'center' }}><Icon name="grow" /></div>
                   <p style={{ fontSize: '.9rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
                     After each lesson, Neeliën adds notes here: what you covered and your homework.
                   </p>
@@ -92,14 +93,14 @@ export default function StudentProgress({ onSwitch }) {
 
             {currentUser?.nextLessonFocus && (
               <div className="card card-pad">
-                <div className="card-title" style={{ marginBottom: 8 }}>🎯 Focus for your next lesson</div>
+                <div className="card-title" style={{ marginBottom: 8 }}><Icon name="target" /> Focus for your next lesson</div>
                 <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', margin: 0, whiteSpace: 'pre-wrap' }}>{currentUser.nextLessonFocus}</p>
               </div>
             )}
 
             {levelNotes.length > 1 && (
               <div className="card card-pad">
-                <div className="card-title" style={{ marginBottom: 8 }}>📈 Level history</div>
+                <div className="card-title" style={{ marginBottom: 8 }}><Icon name="progress" /> Level history</div>
                 {levelNotes.slice(0, 6).map(n => (
                   <div key={n.id} className="hw-item">
                     <div className="hw-info"><strong>{n.level}</strong><span>{longDateIn(tz, dateOf(n))}</span></div>

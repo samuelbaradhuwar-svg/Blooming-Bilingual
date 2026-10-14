@@ -3,6 +3,8 @@ import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { longDateIn, timeIn } from '../../../lib/time';
+import Icon from '../../../components/ui/Icon';
+import Field from '../../../components/ui/Field';
 
 function MeetLink({ booking, onDone }) {
   const { showToast, closeModal } = useApp();
@@ -20,7 +22,7 @@ function MeetLink({ booking, onDone }) {
       <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
         Paste the Google Meet (or Zoom) link for this lesson. {booking.profiles?.full_name} will see a Join button.
       </p>
-      <div className="form-group"><label>Meeting link</label><input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://meet.google.com/…" /></div>
+      <Field label="Meeting link">{id => <input id={id} type="url" inputMode="url" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://meet.google.com/…" autoComplete="off" spellCheck={false} />}</Field>
       <button className="btn btn-primary btn-full" disabled={busy} onClick={save}>{busy ? 'Saving…' : 'Save link'}</button>
     </div>
   );
@@ -90,14 +92,14 @@ export default function AdminBookings() {
                 <div className="hw-info" style={{ flex: 1, minWidth: 200 }}>
                   <strong>{longDateIn(tz, start)} · {timeIn(tz, start)}</strong>
                   <span>{b.profiles?.full_name || 'Student'} · {b.subject}</span>
-                  {b.meet_url && <span>🎥 <a href={b.meet_url} target="_blank" rel="noreferrer">{b.meet_url}</a></span>}
+                  {b.meet_url && <span><Icon name="video" /> <a href={b.meet_url} target="_blank" rel="noreferrer">{b.meet_url}</a></span>}
                 </div>
                 <span style={{ fontSize: '.7rem', fontWeight: 600, padding: '3px 10px', borderRadius: 50, background: b.status === 'cancelled' ? 'var(--red-bg)' : live ? 'var(--green-bg)' : 'var(--off-white)', color: b.status === 'cancelled' ? 'var(--red)' : live ? '#15803d' : 'var(--ink-muted)' }}>
                   {b.status === 'cancelled' ? 'Cancelled' : live ? 'Confirmed' : 'Completed'}
                 </span>
                 {live && (
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn btn-ghost btn-sm" onClick={() => openModal('Meeting link', <MeetLink booking={b} onDone={load} />)}>🎥 {b.meet_url ? 'Edit link' : 'Add link'}</button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => openModal('Meeting link', <MeetLink booking={b} onDone={load} />)}><Icon name="video" /> {b.meet_url ? 'Edit link' : 'Add link'}</button>
                     <button className="btn btn-ghost btn-sm" onClick={() => openModal('Cancel lesson', <CancelByTutor booking={b} onDone={load} />)}>Cancel</button>
                   </div>
                 )}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
+import Field from '../../../components/ui/Field';
 
 export default function AdjustCredits({ student, onDone }) {
   const { showToast, closeModal } = useApp();
@@ -23,8 +24,8 @@ export default function AdjustCredits({ student, onDone }) {
       <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', marginBottom: 14 }}>
         {student.full_name} currently has <strong>{student.credits}</strong> credits. Use a negative number to remove credits.
       </p>
-      <div className="form-group"><label>Change by</label><input type="number" value={delta} onChange={e => setDelta(e.target.value)} placeholder="e.g. 4 or -1" /></div>
-      <div className="form-group"><label>Reason (kept in their history)</label><input value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Paid by bank transfer" /></div>
+      <Field label="Change by">{id => <input id={id} type="number" inputMode="numeric" value={delta} onChange={e => setDelta(e.target.value)} placeholder="e.g. 4 or -1" />}</Field>
+      <Field label="Reason (kept in their history)">{id => <input id={id} value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Paid by bank transfer…" autoComplete="off" />}</Field>
       <button className="btn btn-primary btn-full" disabled={busy || !n} onClick={save}>{busy ? 'Saving…' : 'Save'}</button>
     </div>
   );

@@ -5,6 +5,7 @@ import DashHeader from '../../../components/dashboard/DashHeader';
 import RescheduleModal from '../../../components/RescheduleModal';
 import CancelModal from '../../../components/CancelModal';
 import { longDateIn, timeIn } from '../../../lib/time';
+import Icon from '../../../components/ui/Icon';
 
 const DEFAULT_WINDOW_HOURS = 2;
 
@@ -47,7 +48,7 @@ export default function MyLessons({ onSwitch }) {
   return (
     <>
       <DashHeader title="My Lessons">
-        <button className="btn btn-primary btn-sm" onClick={() => onSwitch('booking')}>📅 Book a lesson</button>
+        <button className="btn btn-primary btn-sm" onClick={() => onSwitch('booking')}><Icon name="calendar" /> Book a lesson</button>
       </DashHeader>
       <div className="dash-main">
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -56,7 +57,7 @@ export default function MyLessons({ onSwitch }) {
           ))}
         </div>
         <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 12 }}>
-          🌍 Times shown in <strong>{tz.replace(/_/g, ' ')}</strong>
+          <Icon name="globe" /> Times shown in <strong>{tz.replace(/_/g, ' ')}</strong>
         </p>
 
         <div className="card card-pad">
@@ -64,7 +65,7 @@ export default function MyLessons({ onSwitch }) {
             <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
           ) : shown.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '28px 0' }}>
-              <div style={{ fontSize: '2rem', marginBottom: 8 }}>{tab === 'upcoming' ? '📅' : '🎓'}</div>
+              <div style={{ fontSize: '2.2rem', marginBottom: 8, color: 'var(--blue)', display: 'flex', justifyContent: 'center' }}><Icon name={tab === 'upcoming' ? 'calendar' : 'lessons'} /></div>
               <p style={{ fontSize: '.9rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
                 {tab === 'upcoming' ? 'No upcoming lessons yet.' : 'No past lessons yet.'}
               </p>
@@ -82,7 +83,7 @@ export default function MyLessons({ onSwitch }) {
                 <span style={{ fontSize: '.7rem', fontWeight: 600, padding: '3px 10px', borderRadius: 50, background: st.bg, color: st.color }}>{st.label}</span>
                 {isUpcoming(b) && (
                   <div style={{ display: 'flex', gap: 8 }}>
-                    {b.meet_url && <a className="btn btn-primary btn-sm" href={b.meet_url} target="_blank" rel="noreferrer">🎥 Join</a>}
+                    {b.meet_url && <a className="btn btn-primary btn-sm" href={b.meet_url} target="_blank" rel="noreferrer"><Icon name="video" weight="fill" /> Join</a>}
                     <button className="btn btn-ghost btn-sm" disabled={!canChange(b)}
                       title={canChange(b) ? '' : `Lessons can be moved up to ${windowHours} hours before`}
                       onClick={() => openModal('Reschedule lesson', <RescheduleModal booking={b} onDone={load} />)}>Reschedule</button>

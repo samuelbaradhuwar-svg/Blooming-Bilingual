@@ -33,7 +33,7 @@ export default function Dashboard() {
   const activeView = view || defaultView;
 
   const handleBuyCredits = () => {
-    openModal('🎟 Buy Lesson Credits', <BuyCreditsModal onClose={closeModal} />);
+    openModal('Buy Lesson Credits', <BuyCreditsModal onClose={closeModal} />);
   };
 
   // Each section has its own address (/dashboard/booking …) so the browser Back button works.

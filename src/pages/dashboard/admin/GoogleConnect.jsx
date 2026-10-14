@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
+import Icon from '../../../components/ui/Icon';
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/calendar.events openid email';
@@ -55,11 +56,11 @@ export default function GoogleConnect() {
 
   return (
     <div className="card card-pad" style={{ marginBottom: 16 }}>
-      <div className="card-title" style={{ marginBottom: 4 }}>🎥 Google Meet <span style={{ fontSize: '.65rem', color: 'var(--ink-muted)', fontWeight: 400 }}>· site version {__BUILD_ID__}</span></div>
+      <div className="card-title" style={{ marginBottom: 4 }}><Icon name="video" /> Google Meet <span style={{ fontSize: '.65rem', color: 'var(--ink-muted)', fontWeight: 400 }}>· site version {__BUILD_ID__}</span></div>
       {status === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p> : status.connected ? (
         <>
           <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
-            ✅ Connected{status.account_email ? ` as ${status.account_email}` : ''}. Every new lesson gets a Meet link and a calendar invite for the student.
+            <Icon name="success" weight="fill" /> Connected{status.account_email ? ` as ${status.account_email}` : ''}. Every new lesson gets a Meet link and a calendar invite for the student.
           </p>
           <button className="btn btn-ghost btn-sm" onClick={disconnect}>Disconnect</button>
         </>
