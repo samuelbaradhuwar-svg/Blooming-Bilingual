@@ -3,6 +3,7 @@ import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { longDateIn, timeIn } from '../../../lib/time';
+import { SKILLS } from '../student/StudentProgress';
 
 const LEVELS = ['', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -10,15 +11,25 @@ function NotesForm({ booking, existing, onDone }) {
   const { showToast, closeModal } = useApp();
   const [f, setF] = useState({
     summary: existing?.summary || '', homework: existing?.homework || '', level: existing?.level || '',
+    ...Object.fromEntries(SKILLS.map(([k]) => [k, existing?.scores?.[k] ?? ''])),
   });
   const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF(x => ({ ...x, [k]: e.target.value }));
 
   const save = async () => {
+    // Skill scores are optional: keep only the ones filled in, as whole numbers from 0 to 100.
+    const scores = {};
+    for (const [k] of SKILLS) {
+      if (f[k] === '' || f[k] == null) continue;
+      const n = Math.round(Number(f[k]));
+      if (Number.isNaN(n) || n < 0 || n > 100) { showToast('Skill scores must be between 0 and 100.', 'error'); return; }
+      scores[k] = n;
+    }
     setBusy(true);
     const { error } = await supabase.from('lesson_notes').upsert({
       booking_id: booking.id, student_id: booking.student_id,
       summary: f.summary || null, homework: f.homework || null, level: f.level || null,
+      scores: Object.keys(scores).length ? scores : null,
     }, { onConflict: 'booking_id' });
     if (error) { setBusy(false); showToast(error.message, 'error'); return; }
     if (booking.status === 'confirmed') {
@@ -37,6 +48,13 @@ function NotesForm({ booking, existing, onDone }) {
       <div className="form-group"><label>Level (optional)</label>
         <select value={f.level} onChange={set('level')}>{LEVELS.map(l => <option key={l} value={l}>{l || '—'}</option>)}</select>
       </div>
+      <div className="form-group"><label>Skill scores, 0–100 (optional — the student sees the latest ones)</label>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+          {SKILLS.map(([k, label]) => (
+            <input key={k} type="number" min="0" max="100" inputMode="numeric" placeholder={label} aria-label={label} value={f[k]} onChange={set(k)} />
+          ))}
+        </div>
+      </div>
       <button className="btn btn-primary btn-full" disabled={busy} onClick={save}>{busy ? 'Saving…' : booking.status === 'confirmed' ? 'Save & mark completed' : 'Save notes'}</button>
     </div>
   );
@@ -52,7 +70,7 @@ export default function AdminLessons() {
     const [b, n] = await Promise.all([
       supabase.from('bookings').select('id, student_id, starts_at, ends_at, subject, status, profiles(full_name)')
         .in('status', ['confirmed', 'completed']).lt('ends_at', new Date().toISOString()).order('starts_at', { ascending: false }),
-      supabase.from('lesson_notes').select('booking_id, summary, homework, level'),
+      supabase.from('lesson_notes').select('booking_id, summary, homework, level, scores'),
     ]);
     if (b.error) { showToast('Could not load lessons.', 'error'); setRows([]); return; }
     setRows(b.data);
