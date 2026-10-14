@@ -7,6 +7,7 @@ import BuyCreditsModal from '../components/BuyCreditsModal';
 import StudentHome from './dashboard/student/StudentHome';
 import BookingView from './dashboard/student/BookingView';
 import MyLessons from './dashboard/student/MyLessons';
+import StudentCredits from './dashboard/student/StudentCredits';
 
 // Admin views
 import AdminHome from './dashboard/admin/AdminHome';
@@ -77,7 +78,7 @@ export default function Dashboard() {
       case 'booking':   return <BookingView onBuyCredits={handleBuyCredits} />;
       case 'lessons':   return <MyLessons onSwitch={switchView} />;
       case 'resources': return <ResourcesView />;
-      case 'credits':   return <Placeholder title="Credits & Billing" />;
+      case 'credits':   return <StudentCredits onBuyCredits={handleBuyCredits} />;
       case 'progress':  return <Placeholder title="My Progress" />;
       default:          return <StudentHome onSwitch={switchView} onBuyCredits={handleBuyCredits} />;
     }
