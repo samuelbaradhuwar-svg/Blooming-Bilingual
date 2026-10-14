@@ -1,8 +1,8 @@
 export const PACKS = [
-  { id: 'A', credits: 1,  label: 'Starter', discount: 0,    badge: null,           features: ['1 × 45-min lesson', 'Flexible scheduling', '2hr reschedule policy'] },
-  { id: 'B', credits: 8,  label: 'Value',   discount: 0.08, badge: 'Most popular', features: ['8 × 45-min lessons', 'Priority scheduling', 'Resource library access', 'Progress tracking'] },
-  { id: 'C', credits: 16, label: 'Growth',  discount: 0.17, badge: null,           features: ['16 × 45-min lessons', 'Resource library access', 'Mock test sessions', 'WhatsApp support'] },
-  { id: 'D', credits: 28, label: 'Bloom',   discount: 0.25, badge: 'Best value',   features: ['28 × 45-min lessons', 'Full monthly pace', 'Unlimited Q&A', 'Monthly progress report'] },
+  { id: 'A', credits: 1,  label: 'Starter', discount: 0,    badge: null,           features: ['1 × 45-min lesson', 'Google Meet link included', 'Lesson notes & homework', 'Progress tracking', 'Private file sharing with Neeliën'] },
+  { id: 'B', credits: 8,  label: 'Value',   discount: 0.08, badge: 'Most popular', features: ['8 × 45-min lessons', 'Google Meet link included', 'Lesson notes & homework', 'Progress tracking', 'Private file sharing with Neeliën'] },
+  { id: 'C', credits: 16, label: 'Growth',  discount: 0.17, badge: null,           features: ['16 × 45-min lessons', 'Google Meet link included', 'Lesson notes & homework', 'Progress tracking', 'Private file sharing with Neeliën'] },
+  { id: 'D', credits: 28, label: 'Bloom',   discount: 0.25, badge: 'Best value',   features: ['28 × 45-min lessons', 'Google Meet link included', 'Lesson notes & homework', 'Progress tracking', 'Private file sharing with Neeliën'] },
 ];
 
 export const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
