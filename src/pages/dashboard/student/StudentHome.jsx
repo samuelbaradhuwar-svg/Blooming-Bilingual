@@ -45,9 +45,9 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
   }, []);
 
   const stats = [
-    { icon: '🎓', bg: 'rgba(212,96,138,.08)', num: d?.done ?? '–', label: 'Lessons completed' },
-    { icon: '📅', bg: 'var(--orange-bg)', num: d?.upcoming ?? '–', label: 'Upcoming lessons' },
-    { icon: '📈', bg: 'var(--green-bg)', num: d ? (d.level ?? '—') : '–', label: 'Current level' },
+    { icon: '🎓', bg: 'rgba(212,96,138,.08)', num: d?.done ?? '–', label: 'Lessons completed', go: 'lessons' },
+    { icon: '📅', bg: 'var(--orange-bg)', num: d?.upcoming ?? '–', label: 'Upcoming lessons', go: 'lessons' },
+    { icon: '📈', bg: 'var(--green-bg)', num: d ? (d.level ?? '—') : '–', label: 'Current level', go: 'progress' },
     { icon: '📁', bg: 'var(--purple-bg)', num: d?.resourceCount ?? '–', label: 'Files', go: 'resources' },
   ];
 
