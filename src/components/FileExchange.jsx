@@ -86,7 +86,7 @@ export function FileList({ items, who, canDelete, onChange, empty, showStudent }
   };
   if (items.length === 0) return <EmptyState compact title={empty}>Files appear here as soon as they are shared.</EmptyState>;
   const extOf = (r) => ((r.storage_path || '').split('.').pop() || 'file').slice(0, 4).toUpperCase();
-  return items.map(r => (
+  return <div className="file-list">{items.map(r => (
     <div key={r.id} className="file-row">
       <span className="file-ico" aria-hidden="true">{extOf(r)}</span>
       <div className="file-info">
@@ -99,5 +99,5 @@ export function FileList({ items, who, canDelete, onChange, empty, showStudent }
         {canDelete(r) && <button className="btn btn-ghost btn-sm" onClick={() => remove(r)} aria-label={`Delete ${r.title}`}><Icon name="trash" /></button>}
       </div>
     </div>
-  ));
+  ))}</div>;
 }
