@@ -47,6 +47,7 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
   const actions = [
     { icon: 'calendar', label: 'Book a Lesson', run: () => onSwitch('booking') },
     { icon: 'credits',  label: 'Buy Credits',   run: onBuyCredits },
+    { icon: 'chat',     label: 'Chat with Neeliën', run: () => onSwitch('chat') },
     { icon: 'files',    label: 'Send a File to Neeliën', run: () => onSwitch('resources') },
     { icon: 'progress', label: 'View My Progress', run: () => onSwitch('progress') },
   ];

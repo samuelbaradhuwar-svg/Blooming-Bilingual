@@ -8,7 +8,7 @@ import { SkeletonRows } from '../../../components/ui/Skeleton';
 
 const when = (iso) => new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-export default function AdminMessages() {
+export default function AdminEnquiries() {
   const { showToast } = useApp();
   const [rows, setRows] = useState(null);
   const [filter, setFilter] = useState('unread');
@@ -50,9 +50,10 @@ export default function AdminMessages() {
 
   return (
     <>
-      <DashHeader title="Messages" />
+      <DashHeader title="Enquiries" />
       <div className="dash-main">
-        <div className="tabs" role="tablist" aria-label="Filter messages">
+        <p className="fine-print" style={{ margin: '0 0 12px' }}>Questions sent from the public Contact page by people who are not students yet.</p>
+        <div className="tabs" role="tablist" aria-label="Filter enquiries">
           {[['unread', 'Unread'], ['read', 'Read'], ['all', 'All']].map(([k, label]) => (
             <button key={k} role="tab" aria-selected={filter === k} className={`tab ${filter === k ? 'active' : ''}`} onClick={() => setFilter(k)}>
               {label}<span className="tab-count">{rows ? counts[k] : '–'}</span>
@@ -62,7 +63,7 @@ export default function AdminMessages() {
         <div className="card card-pad">
           {rows === null ? <SkeletonRows rows={3} h={70} />
             : shown.length === 0 ? (
-              <EmptyState compact title={filter === 'unread' ? 'You are all caught up' : 'No messages here'}>New messages from the Contact page appear here.</EmptyState>
+              <EmptyState compact title={filter === 'unread' ? 'You are all caught up' : 'No enquiries here'}>New enquiries from the Contact page appear here.</EmptyState>
             ) : shown.map(m => (
               <article key={m.id} className={`msg ${m.is_read ? '' : 'unread'}`}>
                 <div className="msg-head">

@@ -31,6 +31,7 @@ export function Privacy() {
         <li><strong>Lessons:</strong> the lessons you book, their date and time, the subject, and the video link for each lesson.</li>
         <li><strong>Credits and payments:</strong> your credit balance and purchase history. Card and bank details are entered with our payment providers and are never stored on this website.</li>
         <li><strong>Learning information:</strong> lesson notes, your English level, and plans or homework set for you.</li>
+        <li><strong>Chat messages:</strong> the questions you send me in the chat and my replies. These are private between you and me.</li>
         <li><strong>Files:</strong> files you upload for me, and files I send you. These are private between you and me.</li>
       </ul>
 

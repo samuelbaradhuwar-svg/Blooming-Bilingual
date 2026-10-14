@@ -4,13 +4,13 @@ import Sidebar, { STUDENT_NAV } from './Sidebar';
 import Icon from '../ui/Icon';
 
 // Short labels for the phone tab bar (the sidebar keeps the longer ones).
-const TAB_LABELS = { home: 'Home', booking: 'Book', lessons: 'Lessons', resources: 'Files', credits: 'Credits', progress: 'Progress' };
+const TAB_LABELS = { home: 'Home', booking: 'Book', lessons: 'Lessons', chat: 'Chat', resources: 'Files', credits: 'Credits', progress: 'Progress' };
 
 const BurgerCtx = createContext(() => {});
 export const useBurger = () => useContext(BurgerCtx);
 
 export default function DashLayout({ activeView, onSwitch, children }) {
-  const { currentUser } = useApp();
+  const { currentUser, chatUnread } = useApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isStudent = currentUser?.role !== 'admin';
 
@@ -40,6 +40,7 @@ export default function DashLayout({ activeView, onSwitch, children }) {
             >
               <Icon name={item.icon} weight={activeView === item.view ? 'fill' : 'regular'} />
               {TAB_LABELS[item.view]}
+              {item.view === 'chat' && chatUnread > 0 && <span className="tab-badge" aria-label={`${chatUnread} unread`}>{chatUnread > 9 ? '9+' : chatUnread}</span>}
             </button>
           ))}
         </nav>

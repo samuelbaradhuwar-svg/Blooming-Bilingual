@@ -19,7 +19,9 @@ import AdminBookings from './dashboard/admin/AdminBookings';
 import AdminLessons from './dashboard/admin/AdminLessons';
 import AdminSchedule from './dashboard/admin/AdminSchedule';
 import AdminBilling from './dashboard/admin/AdminBilling';
-import AdminMessages from './dashboard/admin/AdminMessages';
+import AdminEnquiries from './dashboard/admin/AdminEnquiries';
+import AdminChat from './dashboard/admin/AdminChat';
+import StudentChat from './dashboard/student/StudentChat';
 
 const STUDENT_DEFAULT = 'home';
 const ADMIN_DEFAULT = 'admin-home';
@@ -49,7 +51,8 @@ export default function Dashboard() {
         case 'admin-lessons':   return <AdminLessons />;
         case 'admin-resources': return <ResourcesView admin />;
         case 'admin-billing':   return <AdminBilling />;
-        case 'admin-messages':  return <AdminMessages />;
+        case 'admin-messages':  return <AdminChat id={id} />;
+        case 'admin-enquiries': return <AdminEnquiries />;
         case 'admin-settings':  return <AdminSchedule />;
         default:                return <AdminHome onSwitch={switchView} />;
       }
@@ -60,6 +63,7 @@ export default function Dashboard() {
       case 'home':      return <StudentHome onSwitch={switchView} onBuyCredits={handleBuyCredits} />;
       case 'booking':   return <BookingView onBuyCredits={handleBuyCredits} />;
       case 'lessons':   return <MyLessons onSwitch={switchView} />;
+      case 'chat':      return <StudentChat />;
       case 'resources': return <ResourcesView />;
       case 'credits':   return <StudentCredits onBuyCredits={handleBuyCredits} />;
       case 'progress':  return <StudentProgress onSwitch={switchView} />;
@@ -69,7 +73,7 @@ export default function Dashboard() {
 
   return (
     <DashLayout activeView={activeView} onSwitch={switchView}>
-      <div key={`${activeView}/${id || ''}`} className="page-enter">{renderView()}</div>
+      <div key={`${activeView}/${id || ''}`} className="view-enter">{renderView()}</div>
     </DashLayout>
   );
 }

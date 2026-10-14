@@ -45,6 +45,7 @@ export function AppProvider({ children }) {
   const [modal, setModal] = useState({ open: false, title: '', content: null });
   const toastTimer = useRef(null);
   const roleCheck = useRef(false);   // true while a role-restricted sign-in is being verified
+  const [chatUnread, setChatUnread] = useState(0);   // unread chat messages for whoever is signed in
 
   // ── Toast ──
   const showToast = useCallback((msg, type = 'info') => {
@@ -88,6 +89,39 @@ export function AppProvider({ children }) {
     const { data } = await supabase.rpc('my_credits');
     if (typeof data === 'number') setCurrentUser(u => (u ? { ...u, credits: data } : u));
   }, []);
+
+  // ── Chat notifications: an unread count that updates live, with a slow background refresh as a safety net ──
+  const refreshChatUnread = useCallback(async () => {
+    const { data, error } = await supabase.rpc('chat_unread_count');
+    if (!error && typeof data === 'number') setChatUnread(data);
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser) { setChatUnread(0); return undefined; }
+    const me = currentUser.id;
+    const isTutor = currentUser.role === 'admin';
+    refreshChatUnread();
+    const channel = supabase.channel(`chat-inbox-${me}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, (payload) => {
+        if (payload.new?.sender_id === me) return;
+        refreshChatUnread();
+        // Tell them, unless they are already looking at the chat.
+        const onChat = /\/dashboard\/(chat|admin-messages)/.test(window.location.pathname) && document.visibilityState === 'visible';
+        if (!onChat) showToast(isTutor ? 'You have a new message from a student.' : 'Neeliën replied to your chat.', 'info');
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages' }, refreshChatUnread)
+      .subscribe();
+    const poll = setInterval(refreshChatUnread, 45000);
+    const onVisible = () => { if (document.visibilityState === 'visible') refreshChatUnread(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(poll); document.removeEventListener('visibilitychange', onVisible); supabase.removeChannel(channel); };
+  }, [currentUser?.id, currentUser?.role, refreshChatUnread, showToast]);
+
+  // Show the unread count in the browser tab, so a waiting message is noticed from another tab.
+  useEffect(() => {
+    const base = document.title.replace(/^\(\d+\)\s*/, '');
+    document.title = chatUnread > 0 ? `(${chatUnread}) ${base}` : base;
+  }, [chatUnread]);
 
   // requireRole: optionally refuse accounts without that role (used by the tutor login page).
   const login = useCallback(async (email, pass, requireRole) => {
@@ -146,10 +180,10 @@ export function AppProvider({ children }) {
   }, [currentUser, showToast]);
 
   const value = useMemo(() => ({
-    currentUser, authLoading, login, logout, register, refreshCredits, setTimezone,
+    currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, chatUnread, refreshChatUnread,
     toast, showToast,
     modal, openModal, closeModal,
-  }), [currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, toast, showToast, modal, openModal, closeModal]);
+  }), [currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, chatUnread, refreshChatUnread, toast, showToast, modal, openModal, closeModal]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

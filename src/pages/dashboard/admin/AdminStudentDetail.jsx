@@ -8,6 +8,7 @@ import { longDateIn, shortDateIn, timeIn } from '../../../lib/time';
 import AdjustCredits from './AdjustCredits';
 import Icon from '../../../components/ui/Icon';
 import Field from '../../../components/ui/Field';
+import ChatThread from '../../../components/ChatThread';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const REASONS = { purchase: 'Purchased credits', booking: 'Booked a lesson', refund: 'Refund', adjustment: 'Adjusted by tutor' };
@@ -84,6 +85,14 @@ export default function AdminStudentDetail({ id }) {
                 </div>
               ) : <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No lesson booked.</p>}
               {upcoming.length > 1 && <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginTop: 10 }}>+ {upcoming.length - 1} more: {upcoming.slice(1, 4).map(b => shortDateIn(tz, new Date(b.starts_at))).join(', ')}{upcoming.length > 4 ? '…' : ''}</p>}
+            </div>
+
+            <div className="card card-pad">
+              <div className="card-header">
+                <span className="card-title"><Icon name="chat" /> Chat with {p.full_name?.split(' ')[0] || 'student'}</span>
+                <button className="card-link" onClick={() => navigate(`/dashboard/admin-messages/${id}`)}>Open in Messages →</button>
+              </div>
+              <ChatThread studentId={id} otherName={p.full_name} compact />
             </div>
 
             <div className="card card-pad">

@@ -10,6 +10,7 @@ export const STUDENT_NAV = [
   { view: 'home',      icon: 'home',     label: 'Dashboard' },
   { view: 'booking',   icon: 'calendar', label: 'Book a Lesson' },
   { view: 'lessons',   icon: 'lessons',  label: 'My Lessons' },
+  { view: 'chat',      icon: 'chat',     label: 'Chat with Neeliën' },
   { view: 'resources', icon: 'files',    label: 'Files' },
   { view: 'credits',   icon: 'credits',  label: 'Credits & Billing' },
   { view: 'progress',  icon: 'progress', label: 'My Progress' },
@@ -19,7 +20,8 @@ const ADMIN_NAV = [
   { view: 'admin-home',      icon: 'home',     label: 'Dashboard',    section: 'Overview' },
   { view: 'admin-students',  icon: 'students', label: 'Students' },
   { view: 'admin-bookings',  icon: 'calendar', label: 'Bookings' },
-  { view: 'admin-messages',  icon: 'mail',     label: 'Messages' },
+  { view: 'admin-messages',  icon: 'chat',     label: 'Messages' },
+  { view: 'admin-enquiries', icon: 'mail',     label: 'Enquiries' },
   { view: 'admin-lessons',   icon: 'lessons',  label: 'Lessons',      section: 'Content' },
   { view: 'admin-resources', icon: 'files',    label: 'Student files' },
   { view: 'admin-billing',   icon: 'money',    label: 'Invoices',     section: 'Finance' },
@@ -27,7 +29,7 @@ const ADMIN_NAV = [
 ];
 
 export default function Sidebar({ activeView, onSwitch, open, onClose }) {
-  const { currentUser, logout } = useApp();
+  const { currentUser, logout, chatUnread } = useApp();
   const navigate = useNavigate();
   const isAdmin = currentUser?.role === 'admin';
   const nav = isAdmin ? ADMIN_NAV : STUDENT_NAV;
@@ -43,6 +45,9 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
     window.addEventListener('focus', count);
     return () => { window.removeEventListener('messages-changed', count); window.removeEventListener('focus', count); };
   }, [isAdmin, activeView]);
+
+  // Unread counts shown next to menu items.
+  const badgeFor = (view) => (view === 'admin-enquiries' ? newMessages : view === 'admin-messages' || view === 'chat' ? chatUnread : 0);
 
   const handleLogout = async () => {
     await logout();
@@ -99,9 +104,7 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
               >
                 <span className="sl-icon"><Icon name={item.icon} weight={activeView === item.view ? 'fill' : 'regular'} /></span>
                 {item.label}
-                {item.view === 'admin-messages' && newMessages > 0 && (
-                  <span style={{ marginLeft: 'auto', background: 'var(--blush)', color: 'var(--plum-deep)', fontSize: '.65rem', fontWeight: 700, borderRadius: 50, padding: '1px 7px' }}>{newMessages}</span>
-                )}
+                {badgeFor(item.view) > 0 && <span className="nav-badge" aria-label={`${badgeFor(item.view)} unread`}>{badgeFor(item.view)}</span>}
               </button>
             </div>
           ))}
