@@ -93,9 +93,7 @@ export default function Home() {
           </div>
           <div className="footer-col">
             <h4>Connect</h4>
-            <a href="#">📧 Email</a>
-            <a href="#">💬 WhatsApp</a>
-            <a href="#">📸 Instagram</a>
+            <a onClick={() => navigate('/contact')}>✉️ Send a message</a>
           </div>
         </div>
         <div className="footer-bottom">

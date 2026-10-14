@@ -19,6 +19,7 @@ import AdminBookings from './dashboard/admin/AdminBookings';
 import AdminLessons from './dashboard/admin/AdminLessons';
 import AdminSchedule from './dashboard/admin/AdminSchedule';
 import AdminBilling from './dashboard/admin/AdminBilling';
+import AdminMessages from './dashboard/admin/AdminMessages';
 
 const STUDENT_DEFAULT = 'home';
 const ADMIN_DEFAULT = 'admin-home';
@@ -48,6 +49,7 @@ export default function Dashboard() {
         case 'admin-lessons':   return <AdminLessons />;
         case 'admin-resources': return <ResourcesView admin />;
         case 'admin-billing':   return <AdminBilling />;
+        case 'admin-messages':  return <AdminMessages />;
         case 'admin-settings':  return <AdminSchedule />;
         default:                return <AdminHome onSwitch={switchView} />;
       }

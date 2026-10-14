@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 const STUDENT_NAV = [
   { view: 'home',     icon: '🏠', label: 'Dashboard' },
@@ -14,6 +16,7 @@ const ADMIN_NAV = [
   { view: 'admin-home',      icon: '🏠', label: 'Dashboard',   section: 'Overview' },
   { view: 'admin-students',  icon: '👥', label: 'Students' },
   { view: 'admin-bookings',  icon: '📅', label: 'Bookings' },
+  { view: 'admin-messages',  icon: '✉️', label: 'Messages' },
   { view: 'admin-lessons',   icon: '🎓', label: 'Lessons',     section: 'Content' },
   { view: 'admin-resources', icon: '📁', label: 'Student files' },
   { view: 'admin-billing',   icon: '💰', label: 'Invoices',    section: 'Finance' },
@@ -25,6 +28,18 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
   const navigate = useNavigate();
   const isAdmin = currentUser?.role === 'admin';
   const nav = isAdmin ? ADMIN_NAV : STUDENT_NAV;
+  const [newMessages, setNewMessages] = useState(0);
+
+  // Tutor only: count unread contact-form messages (refreshes when the inbox changes and when the tab is revisited).
+  useEffect(() => {
+    if (!isAdmin) return undefined;
+    const count = () => supabase.from('contact_messages').select('id', { count: 'exact', head: true }).eq('is_read', false)
+      .then(({ count: n, error }) => { if (!error) setNewMessages(n ?? 0); });
+    count();
+    window.addEventListener('messages-changed', count);
+    window.addEventListener('focus', count);
+    return () => { window.removeEventListener('messages-changed', count); window.removeEventListener('focus', count); };
+  }, [isAdmin, activeView]);
 
   const handleLogout = async () => {
     await logout();
@@ -79,6 +94,9 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
               >
                 <span className="sl-icon">{item.icon}</span>
                 {item.label}
+                {item.view === 'admin-messages' && newMessages > 0 && (
+                  <span style={{ marginLeft: 'auto', background: '#D4608A', color: 'white', fontSize: '.65rem', fontWeight: 700, borderRadius: 50, padding: '1px 7px' }}>{newMessages}</span>
+                )}
               </button>
             </div>
           ))}
