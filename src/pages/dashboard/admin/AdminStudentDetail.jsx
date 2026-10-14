@@ -58,7 +58,7 @@ export default function AdminStudentDetail({ id }) {
   return (
     <>
       <DashHeader title={p.full_name || 'Student'}>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard/admin-students')}>← All students</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard/admin-students')}><Icon name="back" /> All students</button>
       </DashHeader>
       <div className="dash-main">
         <p style={{ fontSize: '.82rem', color: 'var(--ink-muted)', marginBottom: 14 }}>
@@ -67,7 +67,7 @@ export default function AdminStudentDetail({ id }) {
 
         <div className="dash-grid-4" style={{ marginBottom: 16 }}>
           <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--green-bg)' }}><Icon name="progress" /></div><div className="stat-num">{p.english_level || '—'}</div><div className="stat-label">English level</div></div>
-          <div className="stat-card"><div className="stat-icon" style={{ background: 'rgba(184,65,107,.1)' }}><Icon name="credits" /></div><div className="stat-num" style={{ color: credits > 0 ? undefined : 'var(--red)' }}>{credits}</div><div className="stat-label">Credits</div></div>
+          <div className="stat-card"><div className="stat-icon" style={{ background: 'rgba(122,31,92,.1)' }}><Icon name="credits" /></div><div className="stat-num" style={{ color: credits > 0 ? undefined : 'var(--red)' }}>{credits}</div><div className="stat-label">Credits</div></div>
           <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--orange-bg)' }}><Icon name="calendar" /></div><div className="stat-num">{upcoming.length}</div><div className="stat-label">Upcoming lessons</div></div>
           <div className="stat-card"><div className="stat-icon" style={{ background: 'var(--purple-bg)' }}><Icon name="files" /></div><div className="stat-num">{resources.length}</div><div className="stat-label">Files exchanged</div></div>
         </div>
@@ -77,10 +77,10 @@ export default function AdminStudentDetail({ id }) {
             <div className="card card-pad">
               <div className="card-title" style={{ marginBottom: 10 }}><Icon name="calendar" /> Next lesson</div>
               {next ? (
-                <div style={{ background: 'linear-gradient(130deg,var(--navy),#6B2045)', borderRadius: 'var(--radius-sm)', padding: 16, color: 'white' }}>
+                <div className="lesson-hero" style={{ marginBottom: 0 }}>
                   <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{longDateIn(tz, new Date(next.starts_at))} · {timeIn(tz, new Date(next.starts_at))}</div>
                   <div style={{ fontSize: '.8rem', opacity: .8, marginTop: 4 }}>{next.subject} · for the student: {shortDateIn(studentTz, new Date(next.starts_at))} {timeIn(studentTz, new Date(next.starts_at))} ({studentTz.replace(/_/g, ' ')})</div>
-                  {next.meet_url && <a className="join-btn" style={{ marginTop: 10, display: 'inline-block' }} href={next.meet_url} target="_blank" rel="noreferrer"><Icon name="video" weight="fill" /> Join</a>}
+                  {next.meet_url && <a className="join-btn" style={{ marginTop: 12 }} href={next.meet_url} target="_blank" rel="noreferrer"><Icon name="video" weight="fill" /> Join</a>}
                 </div>
               ) : <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No lesson booked.</p>}
               {upcoming.length > 1 && <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginTop: 10 }}>+ {upcoming.length - 1} more: {upcoming.slice(1, 4).map(b => shortDateIn(tz, new Date(b.starts_at))).join(', ')}{upcoming.length > 4 ? '…' : ''}</p>}
@@ -126,7 +126,7 @@ export default function AdminStudentDetail({ id }) {
               {ledger.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No credit activity yet.</p> : ledger.slice(0, 8).map(x => (
                 <div key={x.id} className="hw-item">
                   <div className="hw-info"><strong>{REASONS[x.reason]}</strong><span>{new Date(x.created_at).toLocaleDateString()}{x.note ? ` · ${x.note}` : ''}</span></div>
-                  <strong style={{ color: x.delta > 0 ? '#15803d' : 'var(--ink-soft)' }}>{x.delta > 0 ? '+' : ''}{x.delta}</strong>
+                  <strong style={{ color: x.delta > 0 ? 'var(--sage-dark)' : 'var(--ink-soft)' }}>{x.delta > 0 ? '+' : ''}{x.delta}</strong>
                 </div>
               ))}
             </div>

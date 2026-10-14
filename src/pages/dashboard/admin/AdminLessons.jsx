@@ -6,6 +6,8 @@ import { longDateIn, timeIn } from '../../../lib/time';
 import { SKILLS } from '../student/StudentProgress';
 import Icon from '../../../components/ui/Icon';
 import Field from '../../../components/ui/Field';
+import EmptyState from '../../../components/ui/EmptyState';
+import { SkeletonRows } from '../../../components/ui/Skeleton';
 
 const LEVELS = ['', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -105,15 +107,15 @@ export default function AdminLessons() {
     <>
       <DashHeader title="Lessons" />
       <div className="dash-main">
-        {rows === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p> : (
+        {rows === null ? <SkeletonRows rows={3} h={64} /> : (
           <>
             <div className="card card-pad" style={{ marginBottom: 16 }}>
               <div className="card-title" style={{ marginBottom: 8 }}>To wrap up ({todo.length})</div>
-              {todo.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>All caught up. Nothing to wrap up right now.</p> : todo.map(b => <Row key={b.id} b={b} />)}
+              {todo.length === 0 ? <EmptyState compact title="All caught up">Lessons that have finished and need notes will appear here.</EmptyState> : todo.map(b => <Row key={b.id} b={b} />)}
             </div>
             <div className="card card-pad">
               <div className="card-title" style={{ marginBottom: 8 }}>Completed ({done.length})</div>
-              {done.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No completed lessons yet.</p> : done.map(b => <Row key={b.id} b={b} />)}
+              {done.length === 0 ? <EmptyState compact title="No completed lessons yet">Wrap up a lesson to see it here.</EmptyState> : done.map(b => <Row key={b.id} b={b} />)}
             </div>
           </>
         )}

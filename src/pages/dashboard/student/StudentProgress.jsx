@@ -4,13 +4,22 @@ import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { longDateIn } from '../../../lib/time';
 import Icon from '../../../components/ui/Icon';
+import Hibiscus from '../../../components/ui/Hibiscus';
+import ProgressRing from '../../../components/ui/ProgressRing';
+import EmptyState from '../../../components/ui/EmptyState';
+import Skeleton, { SkeletonRows } from '../../../components/ui/Skeleton';
 
+// Shared with the tutor's lesson-notes form.
 export const SKILLS = [
-  ['grammar', 'Grammar', 'var(--blue)'],
-  ['vocabulary', 'Vocabulary', '#E8829F'],
-  ['speaking', 'Speaking', 'var(--purple)'],
-  ['writing', 'Writing', 'var(--green)'],
+  ['grammar', 'Grammar'],
+  ['vocabulary', 'Vocabulary'],
+  ['speaking', 'Speaking'],
+  ['writing', 'Writing'],
 ];
+
+const LEVEL_NAMES = { A1: 'Beginner', A2: 'Elementary', B1: 'Intermediate', B2: 'Upper intermediate', C1: 'Advanced', C2: 'Proficient' };
+// A small bloom for each milestone reached: lessons taken.
+const MILESTONES = [1, 5, 10, 20, 40];
 
 export default function StudentProgress({ onSwitch }) {
   const { currentUser, showToast } = useApp();
@@ -33,81 +42,90 @@ export default function StudentProgress({ onSwitch }) {
 
   const notes = d?.notes ?? [];
   const latestScores = notes.find(n => n.scores && Object.keys(n.scores).length)?.scores ?? null;
-  const levelNotes = notes.filter(n => n.level);
-  const level = currentUser?.englishLevel || levelNotes[0]?.level || null;
+  const level = currentUser?.englishLevel || notes.find(n => n.level)?.level || null;
+  const feedback = notes.filter(n => n.summary).slice(0, 3);
+  const homework = notes.filter(n => n.homework).slice(0, 4);
+  const lessons = d?.lessons ?? 0;
+  const nextMilestone = MILESTONES.find(m => m > lessons);
   const dateOf = (n) => new Date(n.bookings?.starts_at || n.created_at);
 
   return (
     <>
       <DashHeader title="My Progress" />
       <div className="dash-main">
-        <div className="dash-grid-4" style={{ marginBottom: 16 }}>
-          <div className="stat-card"><div className="stat-num">{d ? (level ?? '—') : '–'}</div><div className="stat-label">Current level</div></div>
-          <div className="stat-card"><div className="stat-num">{d ? d.lessons : '–'}</div><div className="stat-label">Lessons taken</div></div>
-          <div className="stat-card"><div className="stat-num">{d ? notes.length : '–'}</div><div className="stat-label">Lesson notes</div></div>
-        </div>
+        <section className="journey" aria-label="Your level">
+          <Hibiscus variant="silhouette" className="journey-flower" />
+          <div className="journey-level">
+            <div className="journey-label">Current level</div>
+            <div className="journey-big">{d ? (level ?? '—') : <Skeleton w={70} h={46} />}</div>
+            <div className="journey-name">{level ? LEVEL_NAMES[level] : d ? 'Not assessed yet' : ''}</div>
+          </div>
+          <div className="journey-side">
+            <div className="journey-label">Lessons taken</div>
+            <div className="journey-count">{d ? lessons : '–'}</div>
+            <ul className="blooms" aria-label="Milestones">
+              {MILESTONES.map(m => (
+                <li key={m} className={lessons >= m ? 'on' : ''} title={`${m} lesson${m > 1 ? 's' : ''}`}>
+                  <Hibiscus variant={lessons >= m ? 'full' : 'line'} size={34} />
+                  <span>{m}</span>
+                </li>
+              ))}
+            </ul>
+            {d && <p className="journey-next">{nextMilestone ? `${nextMilestone - lessons} more lesson${nextMilestone - lessons > 1 ? 's' : ''} to your next bloom.` : 'Every bloom reached. Beautiful work.'}</p>}
+          </div>
+        </section>
 
         <div className="dash-grid">
-          <div className="card card-pad">
-            <div className="card-title" style={{ marginBottom: 12 }}><Icon name="notes" /> Lesson notes</div>
-            {!d ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
-              : notes.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                  <div style={{ fontSize: '2.2rem', marginBottom: 8, color: 'var(--blue)', display: 'flex', justifyContent: 'center' }}><Icon name="grow" /></div>
-                  <p style={{ fontSize: '.9rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
-                    After each lesson, Neeliën adds notes here: what you covered and your homework.
-                  </p>
-                  <button className="btn btn-primary btn-sm" onClick={() => onSwitch('booking')}>Book a lesson</button>
-                </div>
-              ) : notes.map(n => (
-                <div key={n.id} style={{ padding: '12px 0', borderTop: '1px solid var(--border, rgba(0,0,0,.07))' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                    <strong style={{ fontSize: '.9rem' }}>{longDateIn(tz, dateOf(n))}</strong>
-                    <span style={{ fontSize: '.78rem', color: 'var(--ink-muted)' }}>{n.bookings?.subject}{n.level ? ` · Level ${n.level}` : ''}</span>
-                  </div>
-                  {n.summary && <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', margin: '0 0 6px', whiteSpace: 'pre-wrap' }}>{n.summary}</p>}
-                  {n.homework && (
-                    <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontSize: '.82rem', color: 'var(--ink-soft)', whiteSpace: 'pre-wrap' }}>
-                      <strong style={{ display: 'block', fontSize: '.68rem', textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--ink-muted)', marginBottom: 2 }}>Homework</strong>
-                      {n.homework}
-                    </div>
-                  )}
-                </div>
-              ))}
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: 14 }}>Skills</div>
-              {latestScores ? SKILLS.filter(([k]) => typeof latestScores[k] === 'number').map(([k, label, color]) => (
-                <div key={k} className="prog-item">
-                  <div className="prog-header"><strong>{label}</strong><span>{latestScores[k]}%</span></div>
-                  <div className="prog-bar"><div className="prog-fill" style={{ width: `${latestScores[k]}%`, background: color }} /></div>
+              <div className="card-title" style={{ marginBottom: 16 }}><Icon name="chart" /> Skill scores</div>
+              {!d ? <Skeleton h={90} r={14} /> : latestScores ? (
+                <div className="rings">
+                  {SKILLS.filter(([k]) => typeof latestScores[k] === 'number').map(([k, label], i) => (
+                    <div key={k} className="ring-card">
+                      <ProgressRing value={latestScores[k]} label={label} color={['var(--plum)', 'var(--blush)', 'var(--sage)', '#B4417A'][i % 4]} />
+                      <span>{label}</span>
+                    </div>
+                  ))}
                 </div>
-              )) : (
-                <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>
-                  {d ? 'Your skill scores will appear here once Neeliën has assessed them.' : 'Loading…'}
-                </p>
+              ) : (
+                <EmptyState compact title="Scores will appear here">Neeliën adds skill scores as she assesses your Grammar, Vocabulary, Speaking and Writing.</EmptyState>
               )}
             </div>
 
+            <div className="card card-pad">
+              <div className="card-title" style={{ marginBottom: 6 }}><Icon name="notes" /> Recent tutor feedback</div>
+              {!d ? <SkeletonRows rows={2} h={70} /> : feedback.length === 0 ? (
+                <EmptyState compact title="No feedback yet" action={<button className="btn btn-primary btn-sm" onClick={() => onSwitch('booking')}>Book a lesson</button>}>
+                  After each lesson, Neeliën shares what you covered here.
+                </EmptyState>
+              ) : feedback.map(n => (
+                <article key={n.id} className="feedback-item">
+                  <div className="feedback-meta">{longDateIn(tz, dateOf(n))} · {n.bookings?.subject}{n.level ? ` · Level ${n.level}` : ''}</div>
+                  <p className="feedback-text">{n.summary}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {currentUser?.nextLessonFocus && (
               <div className="card card-pad">
                 <div className="card-title" style={{ marginBottom: 8 }}><Icon name="target" /> Focus for your next lesson</div>
-                <p style={{ fontSize: '.85rem', color: 'var(--ink-soft)', margin: 0, whiteSpace: 'pre-wrap' }}>{currentUser.nextLessonFocus}</p>
+                <p className="feedback-text">{currentUser.nextLessonFocus}</p>
               </div>
             )}
-
-            {levelNotes.length > 1 && (
-              <div className="card card-pad">
-                <div className="card-title" style={{ marginBottom: 8 }}><Icon name="progress" /> Level history</div>
-                {levelNotes.slice(0, 6).map(n => (
-                  <div key={n.id} className="hw-item">
-                    <div className="hw-info"><strong>{n.level}</strong><span>{longDateIn(tz, dateOf(n))}</span></div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="card card-pad">
+              <div className="card-title" style={{ marginBottom: 6 }}><Icon name="books" /> Homework</div>
+              {!d ? <Skeleton h={70} r={14} /> : homework.length === 0 ? (
+                <EmptyState compact title="No homework">Homework from your lessons will be listed here.</EmptyState>
+              ) : homework.map(n => (
+                <article key={n.id} className="feedback-item">
+                  <div className="feedback-meta">Set {longDateIn(tz, dateOf(n))}</div>
+                  <p className="feedback-text">{n.homework}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </div>

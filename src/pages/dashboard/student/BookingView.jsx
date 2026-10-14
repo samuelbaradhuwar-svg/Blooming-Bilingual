@@ -83,22 +83,22 @@ export default function BookingView({ onBuyCredits }) {
     <>
       <DashHeader title="Book a Lesson" />
       <div className="dash-main">
-        <div style={{ background: 'rgba(212,96,138,.06)', border: '1px solid rgba(212,96,138,.15)', borderRadius: 'var(--radius-sm)', padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '.85rem', color: 'var(--navy)', fontWeight: 500 }}><Icon name="credits" /> You have <strong>{credits}</strong> credits</span>
-          <span style={{ fontSize: '.78rem', color: 'var(--ink-muted)' }}>· 1 credit = 1 × 45-min lesson</span>
+        <div className="info-strip">
+          <span className="info-strip-main"><Icon name="credits" /> You have <strong>{credits}</strong> {credits === 1 ? 'credit' : 'credits'}</span>
+          <span className="info-strip-sub">1 credit = one 45-minute lesson</span>
           <button className="btn btn-outline btn-sm" style={{ marginLeft: 'auto' }} onClick={onBuyCredits}>Buy more</button>
         </div>
 
-        <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 12 }}>
-          <Icon name="globe" /> Times shown in <strong>{tz.replace(/_/g, ' ')}</strong> (your time zone)
+        <p className="fine-print" style={{ margin: '0 0 14px' }}>
+          <Icon name="globe" /> Times are shown in <strong>{tz.replace(/_/g, ' ')}</strong> (your time zone)
         </p>
 
         <div className="booking-flow">
           <div className="card card-pad">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <button className="btn btn-ghost btn-sm" disabled={isCurrentMonth} onClick={() => changeMonth(-1)}>← Prev</button>
+              <button className="btn btn-ghost btn-sm" disabled={isCurrentMonth} onClick={() => changeMonth(-1)} aria-label="Previous month"><Icon name="back" /> Prev</button>
               <h3 style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, color: 'var(--navy)' }} aria-live="polite">{MONTHS[month]} {year}</h3>
-              <button className="btn btn-ghost btn-sm" onClick={() => changeMonth(1)}>Next →</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => changeMonth(1)} aria-label="Next month">Next <Icon name="arrow" /></button>
             </div>
             <div className="cal-grid">
               {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <div key={d} className="cal-day-name">{d}</div>)}
@@ -119,7 +119,7 @@ export default function BookingView({ onBuyCredits }) {
               })}
             </div>
             {!loading && slots.length === 0 && (
-              <p style={{ fontSize: '.8rem', color: 'var(--ink-muted)', marginTop: 12 }}>No open times this month.</p>
+              <p className="fine-print">No open times this month. Try the next month.</p>
             )}
           </div>
 
@@ -151,10 +151,12 @@ export default function BookingView({ onBuyCredits }) {
             </Field>
 
             {selectedLabel && (
-              <div style={{ background: 'var(--off-white)', borderRadius: 'var(--radius-sm)', padding: '14px 16px', marginBottom: 16, fontSize: '.85rem', color: 'var(--ink-soft)' }}>
-                <strong><Icon name="calendar" /> {selectedLabel}</strong><br />
-                <Icon name="books" /> {subject}<br />
-                <Icon name="video" /> Google Meet link sent on confirmation
+              <div className="booking-summary" aria-live="polite">
+                <strong>Your booking</strong>
+                <div><Icon name="calendar" /> {selectedLabel}</div>
+                <div><Icon name="books" /> {subject} · 45 minutes</div>
+                <div><Icon name="video" /> Google Meet link sent on confirmation</div>
+                <div><Icon name="credits" /> Uses 1 credit</div>
               </div>
             )}
 

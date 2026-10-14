@@ -4,10 +4,18 @@ import { supabase } from '../../../lib/supabase';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import RescheduleModal from '../../../components/RescheduleModal';
 import CancelModal from '../../../components/CancelModal';
-import { longDateIn, timeIn } from '../../../lib/time';
 import Icon from '../../../components/ui/Icon';
+import EmptyState from '../../../components/ui/EmptyState';
+import { SkeletonRows } from '../../../components/ui/Skeleton';
+import { longDateIn, timeIn } from '../../../lib/time';
 
 const DEFAULT_WINDOW_HOURS = 2;
+
+const EMPTY = {
+  upcoming: ['No upcoming lessons', 'Book a time that suits you and your Google Meet link arrives straight away.'],
+  completed: ['No completed lessons yet', 'Lessons you have taken will appear here, with Neeliën’s notes in My Progress.'],
+  cancelled: ['No cancelled lessons', 'Lessons you cancel or move will be listed here.'],
+};
 
 export default function MyLessons({ onSwitch }) {
   const { currentUser, openModal, showToast } = useApp();
@@ -32,17 +40,21 @@ export default function MyLessons({ onSwitch }) {
 
   const now = Date.now();
   const isUpcoming = (b) => b.status === 'confirmed' && new Date(b.ends_at).getTime() > now;
-  const upcoming = (bookings || []).filter(isUpcoming);
-  const past = (bookings || []).filter(b => !isUpcoming(b)).reverse();
-  const shown = tab === 'upcoming' ? upcoming : past;
+  const all = bookings || [];
+  const groups = {
+    upcoming: all.filter(isUpcoming),
+    completed: all.filter(b => b.status !== 'cancelled' && !isUpcoming(b)).reverse(),
+    cancelled: all.filter(b => b.status === 'cancelled').reverse(),
+  };
+  const shown = groups[tab];
 
   const hoursAway = (b) => (new Date(b.starts_at).getTime() - now) / 36e5;
   const canChange = (b) => hoursAway(b) > windowHours;
 
   const statusOf = (b) => {
-    if (b.status === 'cancelled') return { label: 'Cancelled', bg: 'var(--red-bg)', color: 'var(--red)' };
-    if (isUpcoming(b)) return { label: 'Confirmed', bg: 'var(--green-bg)', color: '#15803d' };
-    return { label: 'Completed', bg: 'var(--off-white)', color: 'var(--ink-muted)' };
+    if (b.status === 'cancelled') return { label: 'Cancelled', cls: 'chip-red' };
+    if (isUpcoming(b)) return { label: 'Confirmed', cls: 'chip-green' };
+    return { label: 'Completed', cls: 'chip-blue' };
   };
 
   return (
@@ -51,51 +63,54 @@ export default function MyLessons({ onSwitch }) {
         <button className="btn btn-primary btn-sm" onClick={() => onSwitch('booking')}><Icon name="calendar" /> Book a lesson</button>
       </DashHeader>
       <div className="dash-main">
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-          {[['upcoming', `Upcoming (${upcoming.length})`], ['past', `Past (${past.length})`]].map(([k, label]) => (
-            <button key={k} className={`btn btn-sm ${tab === k ? 'btn-outline' : 'btn-ghost'}`} onClick={() => setTab(k)}>{label}</button>
+        <div className="tabs" role="tablist" aria-label="Lesson status">
+          {[['upcoming', 'Upcoming'], ['completed', 'Completed'], ['cancelled', 'Cancelled']].map(([k, label]) => (
+            <button key={k} role="tab" aria-selected={tab === k} className={`tab ${tab === k ? 'active' : ''}`} onClick={() => setTab(k)}>
+              {label}<span className="tab-count">{bookings ? groups[k].length : '–'}</span>
+            </button>
           ))}
         </div>
-        <p style={{ fontSize: '.78rem', color: 'var(--ink-muted)', marginBottom: 12 }}>
+        <p className="fine-print" style={{ margin: '0 0 12px' }}>
           <Icon name="globe" /> Times shown in <strong>{tz.replace(/_/g, ' ')}</strong>
         </p>
 
-        <div className="card card-pad">
-          {bookings === null ? (
-            <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
-          ) : shown.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '28px 0' }}>
-              <div style={{ fontSize: '2.2rem', marginBottom: 8, color: 'var(--blue)', display: 'flex', justifyContent: 'center' }}><Icon name={tab === 'upcoming' ? 'calendar' : 'lessons'} /></div>
-              <p style={{ fontSize: '.9rem', color: 'var(--ink-soft)', marginBottom: 12 }}>
-                {tab === 'upcoming' ? 'No upcoming lessons yet.' : 'No past lessons yet.'}
-              </p>
-              {tab === 'upcoming' && <button className="btn btn-primary btn-sm" onClick={() => onSwitch('booking')}>Book your first lesson</button>}
-            </div>
-          ) : shown.map(b => {
-            const start = new Date(b.starts_at);
-            const st = statusOf(b);
-            return (
-              <div key={b.id} className="hw-item" style={{ flexWrap: 'wrap' }}>
-                <div className="hw-info" style={{ flex: 1, minWidth: 180 }}>
-                  <strong>{longDateIn(tz, start)} · {timeIn(tz, start)}</strong>
-                  <span>{b.subject} · 45 min</span>
-                </div>
-                <span style={{ fontSize: '.7rem', fontWeight: 600, padding: '3px 10px', borderRadius: 50, background: st.bg, color: st.color }}>{st.label}</span>
-                {isUpcoming(b) && (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {b.meet_url && <a className="btn btn-primary btn-sm" href={b.meet_url} target="_blank" rel="noreferrer"><Icon name="video" weight="fill" /> Join</a>}
-                    <button className="btn btn-ghost btn-sm" disabled={!canChange(b)}
-                      title={canChange(b) ? '' : `Lessons can be moved up to ${windowHours} hours before`}
-                      onClick={() => openModal('Reschedule lesson', <RescheduleModal booking={b} onDone={load} />)}>Reschedule</button>
-                    <button className="btn btn-ghost btn-sm"
-                      onClick={() => openModal('Cancel lesson', <CancelModal booking={b} refundable={canChange(b)} windowHours={windowHours} onDone={load} />)}>Cancel</button>
+        {bookings === null ? <SkeletonRows rows={3} h={84} /> : shown.length === 0 ? (
+          <div className="card card-pad">
+            <EmptyState title={EMPTY[tab][0]} action={tab !== 'cancelled' && <button className="btn btn-primary btn-sm" onClick={() => onSwitch('booking')}>Book a lesson</button>}>
+              {EMPTY[tab][1]}
+            </EmptyState>
+          </div>
+        ) : (
+          <ul className="lesson-list" role="tabpanel">
+            {shown.map(b => {
+              const start = new Date(b.starts_at);
+              const st = statusOf(b);
+              const month = start.toLocaleDateString(undefined, { timeZone: tz, month: 'short' });
+              const day = start.toLocaleDateString(undefined, { timeZone: tz, day: 'numeric' });
+              return (
+                <li key={b.id} className="lesson-item">
+                  <div className="date-tile" aria-hidden="true"><span>{month}</span><strong>{day}</strong></div>
+                  <div className="lesson-main">
+                    <div className="lesson-title">{longDateIn(tz, start)}</div>
+                    <div className="lesson-sub"><Icon name="clock" /> {timeIn(tz, start)} · 45 min · {b.subject}</div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <p style={{ fontSize: '.76rem', color: 'var(--ink-muted)', marginTop: 12 }}>
+                  <span className={`chip ${st.cls}`}>{st.label}</span>
+                  {isUpcoming(b) && (
+                    <div className="lesson-actions">
+                      {b.meet_url && <a className="btn btn-primary btn-sm" href={b.meet_url} target="_blank" rel="noreferrer"><Icon name="video" weight="fill" /> Join</a>}
+                      <button className="btn btn-ghost btn-sm" disabled={!canChange(b)}
+                        title={canChange(b) ? '' : `Lessons can be moved up to ${windowHours} hours before`}
+                        onClick={() => openModal('Reschedule lesson', <RescheduleModal booking={b} onDone={load} />)}>Reschedule</button>
+                      <button className="btn btn-ghost btn-sm"
+                        onClick={() => openModal('Cancel lesson', <CancelModal booking={b} refundable={canChange(b)} windowHours={windowHours} onDone={load} />)}>Cancel</button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <p className="fine-print" style={{ marginTop: 14 }}>
           Cancel or reschedule more than {windowHours} hours ahead and your credit is kept or refunded.
         </p>
       </div>

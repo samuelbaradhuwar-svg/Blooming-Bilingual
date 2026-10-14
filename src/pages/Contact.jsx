@@ -3,11 +3,12 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import Field from '../components/ui/Field';
 import Icon from '../components/ui/Icon';
+import PageHero from '../components/ui/PageHero';
 
 const INFO = [
-  { icon: 'mail',  bg: 'rgba(184,65,107,0.1)', label: 'Reply by email', value: "I'll write back to the address you enter" },
+  { icon: 'mail',  bg: 'rgba(122,31,92,0.1)', label: 'Reply by email', value: "I'll write back to the address you enter" },
   { icon: 'clock', bg: 'var(--orange-bg)',      label: 'Response time',  value: 'Within 24 hours (Mon–Fri)' },
-  { icon: 'globe', bg: '#FAE4EB',               label: 'Time zone',      value: 'SAST (UTC+2) · All zones welcome' },
+  { icon: 'globe', bg: 'var(--soft-pink)',               label: 'Time zone',      value: 'SAST (UTC+2) · All zones welcome' },
 ];
 
 const BLANK = { first: '', last: '', email: '', subject: 'General enquiry', message: '', website: '' };
@@ -38,13 +39,9 @@ export default function Contact() {
 
   return (
     <>
-      <div className="page-hero">
-        <div className="page-hero-inner">
-          <div className="section-label">Contact</div>
-          <h1 className="section-title">Let's talk.</h1>
-          <p className="section-sub">Questions before booking? Reach out and I'll reply within 24 hours.</p>
-        </div>
-      </div>
+      <PageHero label="Contact" title="Let’s talk.">
+        Questions before booking? Reach out and I’ll reply within 24 hours.
+      </PageHero>
 
       <section className="section section-alt">
         <div className="section-inner contact-layout">

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Field from '../components/ui/Field';
-import Icon from '../components/ui/Icon';
+import AuthShell from '../components/ui/AuthShell';
 
 export default function Login({ tutor = false }) {
   const navigate = useNavigate();
@@ -23,31 +23,31 @@ export default function Login({ tutor = false }) {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-logo">
-          <div className="auth-logo-icon"><Icon name="logo" weight="fill" /></div>
-          <div className="auth-logo-name">The Blooming Bilingual</div>
-        </div>
-        <h2>{tutor ? 'Tutor Sign In' : 'Welcome Back'}</h2>
-        <p className="auth-sub">{tutor ? 'Sign in to manage your students and lessons' : 'Sign in to your student portal'}</p>
+    <AuthShell headline="Welcome back to your learning journey.">
+      {!tutor && (
+        <nav className="auth-tabs" aria-label="Account">
+          <Link to="/login" className="auth-tab" aria-current="page">Log in</Link>
+          <Link to="/register" className="auth-tab">Register</Link>
+        </nav>
+      )}
+      <h1>{tutor ? 'Tutor Sign In' : 'Welcome Back'}</h1>
+      <p className="auth-sub">{tutor ? 'Sign in to manage your students and lessons' : 'Sign in to continue your English journey.'}</p>
 
-        <form onSubmit={handleSubmit}>
-          <Field label="Email">
-            {id => <input id={id} name="email" type="email" required placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" spellCheck={false} />}
-          </Field>
-          <Field label="Password">
-            {id => <input id={id} name="password" type="password" required placeholder="Your password" value={pass} onChange={e => setPass(e.target.value)} autoComplete="current-password" />}
-          </Field>
-          <button type="submit" className="btn btn-primary btn-full" disabled={busy}>{busy ? 'Signing in…' : 'Sign In'}</button>
-        </form>
+      <form onSubmit={handleSubmit}>
+        <Field label="Email">
+          {id => <input id={id} name="email" type="email" required placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" spellCheck={false} />}
+        </Field>
+        <Field label="Password">
+          {id => <input id={id} name="password" type="password" required placeholder="Your password" value={pass} onChange={e => setPass(e.target.value)} autoComplete="current-password" />}
+        </Field>
+        <button type="submit" className="btn btn-primary btn-full" disabled={busy}>{busy ? 'Signing in…' : 'Log In'}</button>
+      </form>
 
-        <div className="auth-footer">
-          {tutor
-            ? <>Are you a student? <Link to="/login">Student login</Link></>
-            : <>Don’t have an account? <Link to="/register">Create one</Link></>}
-        </div>
+      <div className="auth-footer">
+        {tutor
+          ? <>Are you a student? <Link to="/login">Student login</Link></>
+          : <>Don’t have an account? <Link to="/register">Register</Link></>}
       </div>
-    </div>
+    </AuthShell>
   );
 }

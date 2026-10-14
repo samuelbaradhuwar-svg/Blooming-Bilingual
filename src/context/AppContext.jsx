@@ -29,7 +29,7 @@ async function loadCurrentUser(authUser) {
     name,
     initials: initialsOf(name),
     role,
-    color: role === 'admin' ? '#C07BA8' : '#D4608A',
+    color: role === 'admin' ? '#5E1646' : '#7A1F5C',
     country: profile?.country ?? null,
     englishLevel: profile?.english_level ?? null,
     nextLessonFocus: profile?.next_lesson_focus ?? null,

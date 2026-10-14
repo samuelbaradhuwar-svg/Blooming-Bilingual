@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Icon from './ui/Icon';
+import Brand from './ui/Brand';
 
 const LINKS = [
   { icon: 'logo',     label: 'About',   long: 'About Neeliën',     sub: 'Meet your tutor and her background',  path: '/about' },
@@ -34,13 +35,10 @@ export default function PublicNav() {
     <>
       <a className="skip-link" href="#main">Skip to content</a>
       <header className="public-nav">
-        <Link to="/" className="nav-brand" aria-label="The Blooming Bilingual, home">
-          <span className="nav-brand-icon"><Icon name="logo" weight="fill" /></span>
-          <span className="nav-brand-name">The Blooming Bilingual</span>
-        </Link>
+        <Brand />
 
         <nav className="nav-links" aria-label="Main">
-          {LINKS.map(l => (
+          {[{ path: '/', label: 'Home' }, ...LINKS].map(l => (
             <Link key={l.path} to={l.path} className={`nav-link ${isActive(l.path) ? 'active' : ''}`} aria-current={isActive(l.path) ? 'page' : undefined}>{l.label}</Link>
           ))}
         </nav>
@@ -50,8 +48,8 @@ export default function PublicNav() {
             <button className="btn btn-primary btn-sm" onClick={() => navigate('/dashboard')}>My Dashboard</button>
           ) : (
             <>
-              <button className="btn btn-ghost btn-sm nav-login" onClick={() => navigate('/login')}>Student Login</button>
-              <button className="btn btn-primary btn-sm nav-cta" onClick={() => navigate('/register')}>Get Started</button>
+              <button className="btn btn-ghost btn-sm nav-login" onClick={() => navigate('/login')}>Log In</button>
+              <button className="btn btn-primary btn-sm nav-cta" onClick={() => navigate('/register')}>Register</button>
             </>
           )}
           <button
@@ -70,10 +68,7 @@ export default function PublicNav() {
 
       <div id="site-menu" className={`menu-drawer ${menuOpen ? 'open' : ''}`} aria-hidden={!menuOpen}>
         <div className="menu-drawer-header">
-          <Link to="/" className="nav-brand" onClick={close}>
-            <span className="nav-brand-icon"><Icon name="logo" weight="fill" /></span>
-            <span className="nav-brand-name">The Blooming Bilingual</span>
-          </Link>
+          <Brand onClick={close} />
           <button className="menu-close-btn" onClick={close} aria-label="Close menu"><Icon name="close" /></button>
         </div>
 

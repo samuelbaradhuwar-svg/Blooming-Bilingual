@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Icon from '../components/ui/Icon';
+import Hibiscus from '../components/ui/Hibiscus';
 
 const QUALS = [
   'TEFL certified',
@@ -15,7 +16,8 @@ export default function About() {
         <div className="about-grid">
           <div>
             <div className="about-photo">
-              <div className="about-photo-initials">NvR</div>
+              <Hibiscus />
+              <div className="about-photo-initials">Neeliën Van Rooyen</div>
             </div>
           </div>
 

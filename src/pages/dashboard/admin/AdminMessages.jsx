@@ -3,12 +3,16 @@ import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import Icon from '../../../components/ui/Icon';
+import EmptyState from '../../../components/ui/EmptyState';
+import { SkeletonRows } from '../../../components/ui/Skeleton';
 
 const when = (iso) => new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default function AdminMessages() {
   const { showToast } = useApp();
   const [rows, setRows] = useState(null);
+  const [filter, setFilter] = useState('unread');
+  const [open, setOpen] = useState(null);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('contact_messages')
@@ -41,35 +45,39 @@ export default function AdminMessages() {
   };
 
   const unread = (rows || []).filter(m => !m.is_read).length;
+  const shown = (rows || []).filter(m => filter === 'all' || (filter === 'unread' ? !m.is_read : m.is_read));
+  const counts = { unread, read: (rows || []).length - unread, all: (rows || []).length };
 
   return (
     <>
       <DashHeader title="Messages" />
       <div className="dash-main">
-        <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)', marginBottom: 12 }}>
-          Messages from the Contact page. Click <strong>Reply</strong> to answer by email.
-        </p>
+        <div className="tabs" role="tablist" aria-label="Filter messages">
+          {[['unread', 'Unread'], ['read', 'Read'], ['all', 'All']].map(([k, label]) => (
+            <button key={k} role="tab" aria-selected={filter === k} className={`tab ${filter === k ? 'active' : ''}`} onClick={() => setFilter(k)}>
+              {label}<span className="tab-count">{rows ? counts[k] : '–'}</span>
+            </button>
+          ))}
+        </div>
         <div className="card card-pad">
-          <div className="card-title" style={{ marginBottom: 8 }}>Inbox{rows ? ` (${rows.length}${unread ? ` · ${unread} new` : ''})` : ''}</div>
-          {rows === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p>
-            : rows.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No messages yet. New ones from the Contact page appear here.</p>
-            : rows.map(m => (
-              <div key={m.id} style={{ padding: '14px 0', borderTop: '1px solid var(--border-soft, rgba(0,0,0,.07))' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', alignItems: 'baseline' }}>
-                  <div>
-                    <strong style={{ fontSize: '.92rem' }}>{!m.is_read && <span title="New" style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: 'var(--rose, #D4608A)', marginRight: 6 }} />}{m.name}</strong>
-                    <span style={{ fontSize: '.8rem', color: 'var(--ink-muted)' }}> · {m.email}</span>
-                  </div>
-                  <span style={{ fontSize: '.75rem', color: 'var(--ink-muted)' }}>{when(m.created_at)}</span>
+          {rows === null ? <SkeletonRows rows={3} h={70} />
+            : shown.length === 0 ? (
+              <EmptyState compact title={filter === 'unread' ? 'You are all caught up' : 'No messages here'}>New messages from the Contact page appear here.</EmptyState>
+            ) : shown.map(m => (
+              <article key={m.id} className={`msg ${m.is_read ? '' : 'unread'}`}>
+                <div className="msg-head">
+                  <span className="msg-from">{!m.is_read && <span className="msg-dot" title="Unread" />}{m.name} <small style={{ fontWeight: 400, color: 'var(--ink-muted)' }}>{m.email}</small></span>
+                  <time className="fine-print" style={{ margin: 0 }} dateTime={m.created_at}>{when(m.created_at)}</time>
                 </div>
-                <div style={{ fontSize: '.78rem', color: 'var(--ink-muted)', margin: '2px 0 6px' }}>{m.subject}</div>
-                <p style={{ fontSize: '.88rem', color: 'var(--ink-soft)', margin: '0 0 10px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{m.message}</p>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <div className="msg-subject">{m.subject}</div>
+                <p className={`msg-body ${open === m.id ? '' : 'is-clamped'}`}>{m.message}</p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
                   <button className="btn btn-primary btn-sm" onClick={() => reply(m)}><Icon name="mail" /> Reply</button>
+                  {m.message.length > 110 && <button className="btn btn-ghost btn-sm" aria-expanded={open === m.id} onClick={() => setOpen(open === m.id ? null : m.id)}>{open === m.id ? 'Show less' : 'Read all'}</button>}
                   <button className="btn btn-ghost btn-sm" onClick={() => toggleRead(m)}>{m.is_read ? 'Mark as new' : 'Mark as read'}</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => remove(m)}>Delete</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => remove(m)} aria-label={`Delete message from ${m.name}`}><Icon name="trash" /> Delete</button>
                 </div>
-              </div>
+              </article>
             ))}
         </div>
       </div>

@@ -31,7 +31,7 @@ function GuestOnly({ children }) {
 
 function NotFound() {
   return (
-    <div className="auth-page">
+    <div className="auth-page is-solo">
       <div className="auth-card" style={{ textAlign: 'center' }}>
         <h2>Page not found</h2>
         <p className="auth-sub">That page doesn't exist.</p>
@@ -54,7 +54,7 @@ export default function App() {
       {showPublicNav && <PublicNav />}
 
       {!showPublicNav && <a className="skip-link" href="#main">Skip to content</a>}
-      <main id="main" tabIndex={-1} style={{ outline: 'none' }}>
+      <main id="main" key={pathname.split('/')[1] || 'home'} tabIndex={-1} className="page-enter" style={{ outline: 'none' }}>
       <Suspense fallback={<div style={{ minHeight: '70vh' }} aria-busy="true" />}>
         <Routes>
           <Route path="/"          element={<Home />} />

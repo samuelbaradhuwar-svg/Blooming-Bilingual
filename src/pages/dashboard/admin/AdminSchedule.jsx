@@ -89,27 +89,29 @@ export default function AdminSchedule() {
             The 00:00 row is just after midnight at the end of that working day. Students see these in their own time zone.
           </p>
           {rules === null ? <p>Loading…</p> : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ borderCollapse: 'separate', borderSpacing: 4, fontSize: '.78rem' }}>
-                <thead><tr><th />{DAYS.map(([, n]) => <th key={n} style={{ fontWeight: 600, color: 'var(--ink-soft)' }}>{n}</th>)}</tr></thead>
-                <tbody>
-                  {HOURS.map(h => (
-                    <tr key={h}>
-                      <td style={{ color: 'var(--ink-muted)', paddingRight: 8 }}>{label(h)}</td>
-                      {DAYS.map(([wd, n]) => {
-                        const on = rules.has(`${wd}|${hh(h)}`);
-                        return (
-                          <td key={n}>
-                            <button type="button" aria-pressed={on} aria-label={`${n} ${label(h)}`} onClick={() => toggle(wd, h)}
-                              style={{ width: 38, height: 28, borderRadius: 6, border: '1.5px solid ' + (on ? 'var(--blue)' : 'var(--border)'), background: on ? 'var(--blue)' : 'white', cursor: 'pointer' }} />
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <>
+              <div className="legend"><span><i className="on" /> Open for booking</span><span><i /> Closed</span><strong style={{ marginLeft: 'auto', color: 'var(--navy)' }}>{rules.size} open hour{rules.size === 1 ? '' : 's'} per week</strong></div>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="schedule-grid">
+                  <thead><tr><th scope="col"><span className="sr-only">Time</span></th>{DAYS.map(([, n]) => <th scope="col" key={n}>{n}</th>)}</tr></thead>
+                  <tbody>
+                    {HOURS.map(h => (
+                      <tr key={h}>
+                        <th scope="row" className="hour" style={{ fontWeight: 500 }}>{label(h)}</th>
+                        {DAYS.map(([wd, n]) => {
+                          const on = rules.has(`${wd}|${hh(h)}`);
+                          return (
+                            <td key={n}>
+                              <button type="button" className="slot-toggle" aria-pressed={on} aria-label={`${n} ${label(h)}`} onClick={() => toggle(wd, h)} />
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
 

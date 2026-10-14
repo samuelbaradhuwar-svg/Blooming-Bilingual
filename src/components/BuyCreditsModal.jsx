@@ -44,7 +44,7 @@ export default function BuyCreditsModal({ onClose }) {
               onClick={() => setSelected(p.id)}
               style={{
                 border: `2px solid ${isSelected ? 'var(--blue)' : 'var(--border)'}`,
-                background: isSelected ? 'rgba(212,96,138,0.06)' : 'white',
+                background: isSelected ? 'rgba(122,31,92,0.06)' : 'white',
                 borderRadius: 'var(--radius-sm)', padding: 14, textAlign: 'center',
                 cursor: 'pointer', transition: 'all .15s', position: 'relative',
               }}

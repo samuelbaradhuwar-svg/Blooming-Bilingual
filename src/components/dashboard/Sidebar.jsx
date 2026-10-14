@@ -3,6 +3,8 @@ import { useApp } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import Icon from '../ui/Icon';
+import { BrandMark } from '../ui/Brand';
+import { BRAND } from '../../data/brand';
 
 export const STUDENT_NAV = [
   { view: 'home',      icon: 'home',     label: 'Dashboard' },
@@ -55,9 +57,9 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
       <aside className={`sidebar ${open ? 'open' : ''}`} aria-label="Dashboard navigation">
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-icon"><Icon name="logo" weight="fill" /></div>
+          <BrandMark size={36} tone="light" />
           <div>
-            <div className="sidebar-logo-name">Blooming Bilingual</div>
+            <div className="sidebar-logo-name">{BRAND.short}</div>
             <div className="sidebar-logo-sub">{isAdmin ? 'Tutor Portal' : 'Student Portal'}</div>
           </div>
         </div>
@@ -78,7 +80,7 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
             </div>
             <div style={{ fontSize: '.78rem', opacity: .8, margin: '2px 0 10px' }}>credits · 45 min each</div>
             <div style={{ height: 4, borderRadius: 10, background: 'rgba(255,255,255,.2)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${Math.min(((currentUser?.credits || 0) / 8) * 100, 100)}%`, background: '#F7C6D6', borderRadius: 10 }} />
+              <div style={{ height: '100%', width: `${Math.min(((currentUser?.credits || 0) / 8) * 100, 100)}%`, background: 'var(--blush)', borderRadius: 10 }} />
             </div>
           </button>
         )}
@@ -98,7 +100,7 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
                 <span className="sl-icon"><Icon name={item.icon} weight={activeView === item.view ? 'fill' : 'regular'} /></span>
                 {item.label}
                 {item.view === 'admin-messages' && newMessages > 0 && (
-                  <span style={{ marginLeft: 'auto', background: '#D4608A', color: 'white', fontSize: '.65rem', fontWeight: 700, borderRadius: 50, padding: '1px 7px' }}>{newMessages}</span>
+                  <span style={{ marginLeft: 'auto', background: 'var(--blush)', color: 'var(--plum-deep)', fontSize: '.65rem', fontWeight: 700, borderRadius: 50, padding: '1px 7px' }}>{newMessages}</span>
                 )}
               </button>
             </div>
@@ -116,7 +118,7 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
               <div className="sidebar-user-role">{isAdmin ? 'Tutor · Admin' : 'Student'}</div>
             </div>
           </div>
-          <button className="sidebar-link" onClick={handleLogout} style={{ color: 'var(--red)', marginTop: 4 }}>
+          <button className="sidebar-link sidebar-signout" onClick={handleLogout}>
             <span className="sl-icon"><Icon name="signout" /></span> Sign Out
           </button>
         </div>

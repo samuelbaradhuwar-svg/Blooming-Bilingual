@@ -69,7 +69,7 @@ export default function Dashboard() {
 
   return (
     <DashLayout activeView={activeView} onSwitch={switchView}>
-      {renderView()}
+      <div key={`${activeView}/${id || ''}`} className="page-enter">{renderView()}</div>
     </DashLayout>
   );
 }

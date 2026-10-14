@@ -1,15 +1,13 @@
 import { Link } from 'react-router-dom';
 import Icon from './ui/Icon';
+import Brand from './ui/Brand';
 
 export default function Footer() {
   return (
     <footer className="main-footer">
       <div className="footer-grid">
         <div className="footer-brand">
-          <Link to="/" className="nav-brand" aria-label="The Blooming Bilingual, home">
-            <span className="nav-brand-icon"><Icon name="logo" weight="fill" /></span>
-            <span className="nav-brand-name" style={{ color: 'white' }}>The Blooming Bilingual</span>
-          </Link>
+          <Brand tone="light" />
           <p>One-on-one online English tutoring by Neeliën Van Rooyen. One credit = one 45-minute lesson.</p>
         </div>
         <nav className="footer-col" aria-label="Explore">

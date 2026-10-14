@@ -3,8 +3,12 @@ import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { formatMoney } from '../../../data/constants';
+import EmptyState from '../../../components/ui/EmptyState';
+import Skeleton, { SkeletonRows } from '../../../components/ui/Skeleton';
 
 const eur = (c) => formatMoney(c, 2);
+const METHODS = { paypal: 'PayPal', stripe: 'Card', payfast: 'PayFast' };
+const STATUS = { paid: ['Paid', 'chip-green'], pending: ['Pending', 'chip-orange'], failed: ['Failed', 'chip-red'], refunded: ['Refunded', 'chip-blue'] };
 
 export default function AdminBilling() {
   const { showToast } = useApp();
@@ -26,23 +30,35 @@ export default function AdminBilling() {
     <>
       <DashHeader title="Invoices & Billing" />
       <div className="dash-main">
-        <div className="dash-grid-4" style={{ marginBottom: 16 }}>
-          <div className="stat-card"><div className="stat-num">{eur(total)}</div><div className="stat-label">Total received</div></div>
-          <div className="stat-card"><div className="stat-num">{paid.length}</div><div className="stat-label">Paid orders</div></div>
+        <div className="dash-grid-4" style={{ marginBottom: 20 }}>
+          <div className="stat-card"><div className="stat-num">{orders ? eur(total) : <Skeleton w={90} h={30} />}</div><div className="stat-label">Total received</div></div>
+          <div className="stat-card"><div className="stat-num">{orders ? paid.length : <Skeleton w={40} h={30} />}</div><div className="stat-label">Paid orders</div></div>
         </div>
         <div className="card card-pad">
-          {orders === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p> : orders.length === 0 ? (
-            <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No payments yet. Orders will appear here once online payments are switched on.</p>
-          ) : orders.map(o => (
-            <div key={o.id} className="hw-item" style={{ flexWrap: 'wrap' }}>
-              <div className="hw-info" style={{ flex: 1, minWidth: 200 }}>
-                <strong>{o.profiles?.full_name || 'Student'} · {o.credits} credits</strong>
-                <span>{new Date(o.created_at).toLocaleDateString()} · {o.provider}</span>
-              </div>
-              <strong>{eur(o.amount_cents)}</strong>
-              <span style={{ fontSize: '.7rem', fontWeight: 600, padding: '3px 10px', borderRadius: 50, background: o.status === 'paid' ? 'var(--green-bg)' : 'var(--off-white)', color: o.status === 'paid' ? '#15803d' : 'var(--ink-muted)' }}>{o.status}</span>
+          {orders === null ? <SkeletonRows rows={3} h={48} /> : orders.length === 0 ? (
+            <EmptyState compact title="No payments yet">Orders appear here as soon as a student buys credits.</EmptyState>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table stack-table">
+                <thead><tr><th>Date</th><th>Student</th><th>Credits</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody>
+                  {orders.map(o => {
+                    const [label, cls] = STATUS[o.status] || [o.status, 'chip-blue'];
+                    return (
+                      <tr key={o.id}>
+                        <td data-label="Date">{new Date(o.paid_at || o.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                        <td data-label="Student">{o.profiles?.full_name || o.profiles?.email || 'Student'}</td>
+                        <td data-label="Credits">{o.credits}</td>
+                        <td data-label="Method">{METHODS[o.provider] || o.provider}</td>
+                        <td data-label="Amount"><strong>{eur(o.amount_cents)}</strong></td>
+                        <td data-label="Status"><span className={`chip ${cls}`}>{label}</span></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </>

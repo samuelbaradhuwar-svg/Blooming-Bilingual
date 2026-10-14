@@ -5,6 +5,8 @@ import { UploadForm, FileList } from '../../components/FileExchange';
 import { useApp } from '../../context/AppContext';
 import { supabase } from '../../lib/supabase';
 import Field from '../../components/ui/Field';
+import Icon from '../../components/ui/Icon';
+import { SkeletonRows } from '../../components/ui/Skeleton';
 
 // Student: your private file exchange with Neeliën.
 // Tutor: every student's exchange, filtered by student (and a shortcut to each student's page).
@@ -14,6 +16,7 @@ export default function ResourcesView({ admin = false }) {
   const [rows, setRows] = useState(null);
   const [students, setStudents] = useState([]);
   const [pick, setPick] = useState('');
+  const [tab, setTab] = useState('tutor');
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('resources')
@@ -33,24 +36,30 @@ export default function ResourcesView({ admin = false }) {
   if (!admin) {
     const fromTutor = shown.filter(r => r.uploader_id !== currentUser.id);
     const mine = shown.filter(r => r.uploader_id === currentUser.id);
+    const list = tab === 'tutor' ? fromTutor : mine;
     return (
       <>
-        <DashHeader title="Resources" />
+        <DashHeader title="Files" />
         <div className="dash-main">
-          {rows === null ? <p style={{ fontSize: '.85rem' }}>Loading…</p> : (
-            <>
-              <div className="card card-pad" style={{ marginBottom: 16 }}>
-                <div className="card-title" style={{ marginBottom: 4 }}>From Neeliën</div>
-                <p style={{ fontSize: '.8rem', color: 'var(--ink-muted)', marginBottom: 12 }}>Material Neeliën sends just to you.</p>
-                <FileList items={fromTutor} who={() => 'From Neeliën'} canDelete={() => false} onChange={load} empty="Nothing from Neeliën yet." />
-              </div>
-              <div className="card card-pad">
-                <div className="card-title" style={{ marginBottom: 4 }}>Send to Neeliën</div>
-                <p style={{ fontSize: '.8rem', color: 'var(--ink-muted)', marginBottom: 12 }}>Essays, homework or questions. Only you and Neeliën can see your files.</p>
-                <UploadForm studentId={currentUser.id} onDone={load} label="Send" />
-                <FileList items={mine} who={() => 'Sent by you'} canDelete={() => true} onChange={load} empty="You haven't sent anything yet." />
-              </div>
-            </>
+          <p className="fine-print" style={{ margin: '0 0 14px' }}><Icon name="lock" /> Private: only you and Neeliën can see these files.</p>
+          <div className="tabs" role="tablist" aria-label="Files">
+            {[['tutor', 'From Neeliën', fromTutor.length], ['mine', 'Shared with Neeliën', mine.length]].map(([k, label, n]) => (
+              <button key={k} role="tab" aria-selected={tab === k} className={`tab ${tab === k ? 'active' : ''}`} onClick={() => setTab(k)}>
+                {label}<span className="tab-count">{rows ? n : '–'}</span>
+              </button>
+            ))}
+          </div>
+          {rows === null ? <SkeletonRows rows={3} h={64} /> : (
+            <div className="card card-pad" role="tabpanel">
+              {tab === 'mine' && (
+                <>
+                  <p style={{ fontSize: '.9rem', color: 'var(--ink-soft)', marginBottom: 12 }}>Send Neeliën essays, homework or questions.</p>
+                  <UploadForm studentId={currentUser.id} onDone={load} label="Send" wide />
+                </>
+              )}
+              <FileList items={list} who={() => (tab === 'tutor' ? 'From Neeliën' : 'Sent by you')} canDelete={() => tab === 'mine'} onChange={load}
+                empty={tab === 'tutor' ? 'Nothing from Neeliën yet' : 'You have not shared anything yet'} />
+            </div>
           )}
         </div>
       </>

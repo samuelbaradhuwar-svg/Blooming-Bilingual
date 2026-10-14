@@ -26,7 +26,7 @@ export function PaymentReturn() {
   }, [orderId, navigate, refreshCredits, showToast]);
 
   return (
-    <div className="auth-page">
+    <div className="auth-page is-solo">
       <div className="auth-card" style={{ textAlign: 'center' }}>
         {state.status === 'working' ? (
           <>
@@ -47,7 +47,7 @@ export function PaymentReturn() {
 
 export function PaymentCancelled() {
   return (
-    <div className="auth-page">
+    <div className="auth-page is-solo">
       <div className="auth-card" style={{ textAlign: 'center' }}>
         <h2>Payment cancelled</h2>
         <p className="auth-sub">No money was taken. You can try again whenever you're ready.</p>

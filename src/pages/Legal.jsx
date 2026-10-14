@@ -1,17 +1,12 @@
 import { Link } from 'react-router-dom';
+import PageHero from '../components/ui/PageHero';
 
 const UPDATED = '6 October 2026';
 
 function Page({ label, title, children }) {
   return (
     <>
-      <div className="page-hero">
-        <div className="page-hero-inner">
-          <div className="section-label">{label}</div>
-          <h1 className="section-title">{title}</h1>
-          <p className="section-sub">Last updated {UPDATED}</p>
-        </div>
-      </div>
+      <PageHero label={label} title={title}>Last updated {UPDATED}</PageHero>
       <section className="section">
         <div className="section-inner" style={{ maxWidth: 760 }}>
           <div className="legal">{children}</div>

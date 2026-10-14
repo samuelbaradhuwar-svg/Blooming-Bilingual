@@ -4,8 +4,11 @@ import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import { formatMoney } from '../../../data/constants';
 import Icon from '../../../components/ui/Icon';
+import EmptyState from '../../../components/ui/EmptyState';
+import Skeleton, { SkeletonRows } from '../../../components/ui/Skeleton';
 
-const REASONS = { purchase: 'Purchased credits', booking: 'Booked a lesson', refund: 'Refund', adjustment: 'Adjusted by Neeliën' };
+const REASONS = { purchase: 'Purchased credits', booking: 'Booked a lesson', refund: 'Credit refunded', adjustment: 'Adjusted by Neeliën' };
+const METHODS = { paypal: 'PayPal', stripe: 'Card', payfast: 'PayFast' };
 const when = (iso) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
 export default function StudentCredits({ onBuyCredits }) {
@@ -29,6 +32,7 @@ export default function StudentCredits({ onBuyCredits }) {
   }, []);
 
   const spent = (orders || []).reduce((s, o) => s + o.amount_cents, 0);
+  const credits = currentUser?.credits ?? 0;
 
   return (
     <>
@@ -36,43 +40,59 @@ export default function StudentCredits({ onBuyCredits }) {
         <button className="btn btn-primary btn-sm" onClick={onBuyCredits}><Icon name="credits" /> Buy Credits</button>
       </DashHeader>
       <div className="dash-main">
-        <div className="dash-grid-4" style={{ marginBottom: 16 }}>
-          <div className="stat-card"><div className="stat-num">{currentUser?.credits ?? 0}</div><div className="stat-label">Credits available</div></div>
-          <div className="stat-card"><div className="stat-num">{orders ? orders.length : '–'}</div><div className="stat-label">Payments made</div></div>
-          <div className="stat-card"><div className="stat-num">{orders ? formatMoney(spent, 2) : '–'}</div><div className="stat-label">Total paid</div></div>
+        <section className="balance" aria-label="Credit balance">
+          <div>
+            <div className="balance-label">Available credits</div>
+            <div className="balance-num">{credits}</div>
+            <div className="balance-sub">Each credit is one 45-minute lesson. Credits never expire.</div>
+          </div>
+          <button className="btn btn-light" onClick={onBuyCredits}><Icon name="credits" /> Buy more credits</button>
+        </section>
+
+        <div className="dash-grid-4" style={{ marginBottom: 20, gridTemplateColumns: undefined }}>
+          <div className="stat-card"><div className="stat-num">{orders ? orders.length : <Skeleton w={40} h={30} />}</div><div className="stat-label">Payments made</div></div>
+          <div className="stat-card"><div className="stat-num">{orders ? formatMoney(spent, 2) : <Skeleton w={80} h={30} />}</div><div className="stat-label">Total paid</div></div>
         </div>
 
-        <div className="dash-grid">
-          <div className="card card-pad">
-            <div className="card-title" style={{ marginBottom: 10 }}><Icon name="card" /> Payments</div>
-            {orders === null ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
-              : orders.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>No payments yet. When you buy credits, your receipts appear here.</p>
-              : orders.map(o => (
-                <div key={o.id} className="hw-item" style={{ flexWrap: 'wrap' }}>
-                  <div className="hw-info" style={{ flex: 1, minWidth: 160 }}>
-                    <strong>{o.credits} {o.credits === 1 ? 'credit' : 'credits'}</strong>
-                    <span>{when(o.paid_at || o.created_at)} · {o.provider === 'paypal' ? 'PayPal' : o.provider}</span>
-                  </div>
-                  <strong>{formatMoney(o.amount_cents, 2)}</strong>
-                  <span style={{ fontSize: '.7rem', fontWeight: 600, padding: '3px 10px', borderRadius: 50, background: 'var(--green-bg)', color: '#15803d' }}>Paid</span>
-                </div>
-              ))}
-          </div>
+        <div className="card card-pad" style={{ marginBottom: 20 }}>
+          <div className="card-title" style={{ marginBottom: 12 }}><Icon name="card" /> Payment history</div>
+          {orders === null ? <SkeletonRows rows={2} h={48} /> : orders.length === 0 ? (
+            <EmptyState compact title="No payments yet" action={<button className="btn btn-primary btn-sm" onClick={onBuyCredits}>Buy your first credits</button>}>
+              Receipts for your credit purchases will appear here.
+            </EmptyState>
+          ) : (
+            <div className="table-scroll">
+              <table className="data-table stack-table">
+                <thead><tr><th>Date</th><th>Credits</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody>
+                  {orders.map(o => (
+                    <tr key={o.id}>
+                      <td data-label="Date">{when(o.paid_at || o.created_at)}</td>
+                      <td data-label="Credits">{o.credits} {o.credits === 1 ? 'credit' : 'credits'}</td>
+                      <td data-label="Method">{METHODS[o.provider] || o.provider}</td>
+                      <td data-label="Amount"><strong>{formatMoney(o.amount_cents, 2)}</strong></td>
+                      <td data-label="Status"><span className="chip chip-green">Paid</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
-          <div className="card card-pad">
-            <div className="card-title" style={{ marginBottom: 10 }}><Icon name="credits" /> Credit history</div>
-            {ledger === null ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Loading…</p>
-              : ledger.length === 0 ? <p style={{ fontSize: '.85rem', color: 'var(--ink-muted)' }}>Nothing yet.</p>
-              : ledger.map(r => (
-                <div key={r.id} className="hw-item">
-                  <div className="hw-info">
-                    <strong>{REASONS[r.reason] || r.reason}</strong>
-                    <span>{when(r.created_at)}{r.note ? ` · ${r.note}` : ''}</span>
-                  </div>
-                  <strong style={{ color: r.delta > 0 ? '#15803d' : 'var(--ink-soft)' }}>{r.delta > 0 ? `+${r.delta}` : r.delta}</strong>
-                </div>
-              ))}
-          </div>
+        <div className="card card-pad">
+          <div className="card-title" style={{ marginBottom: 6 }}><Icon name="receipt" /> Credit history</div>
+          {ledger === null ? <SkeletonRows rows={3} h={44} /> : ledger.length === 0 ? (
+            <EmptyState compact title="Nothing yet">Every credit you buy or use is recorded here.</EmptyState>
+          ) : ledger.map(r => (
+            <div key={r.id} className="hw-item">
+              <div className="hw-info">
+                <strong>{REASONS[r.reason] || r.reason}</strong>
+                <span>{when(r.created_at)}{r.note ? ` · ${r.note}` : ''}</span>
+              </div>
+              <strong className={`delta ${r.delta > 0 ? 'is-in' : ''}`}>{r.delta > 0 ? `+${r.delta}` : r.delta}</strong>
+            </div>
+          ))}
         </div>
       </div>
     </>

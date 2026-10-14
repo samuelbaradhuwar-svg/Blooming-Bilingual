@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PACKS, CURRENCY_SYMBOL, packPrice, packPerCredit } from '../data/constants';
 import Icon from '../components/ui/Icon';
+import PageHero from '../components/ui/PageHero';
 
 const RATE = 12;
 
@@ -18,13 +19,9 @@ export default function Pricing() {
 
   return (
     <>
-      <div className="page-hero">
-        <div className="page-hero-inner">
-          <div className="section-label">Credits & Pricing</div>
-          <h1 className="section-title">One credit.<br />One 45-minute lesson.</h1>
-          <p className="section-sub">Buy as few as 1 or as many as 28. The more you buy, the better your rate. Credits never expire.</p>
-        </div>
-      </div>
+      <PageHero label="Credits & Pricing" title={<>Simple, flexible<br />pricing.</>}>
+        Choose the credit pack that works for you. Each 45-minute lesson uses 1 credit, and credits never expire.
+      </PageHero>
 
       <section className="section">
         <div className="section-inner">
@@ -33,7 +30,7 @@ export default function Pricing() {
               const price = packPrice(p.credits, p.discount, RATE);
               const per = packPerCredit(p.discount, RATE);
               const saved = Math.round(RATE * p.credits * p.discount);
-              const featured = p.id === 'B';
+              const featured = p.badge === 'Best value';
               return (
                 <article key={p.id} className={`price-card ${featured ? 'featured' : ''}`}>
                   {p.badge && <div className="price-badge">{p.badge}</div>}
@@ -53,6 +50,12 @@ export default function Pricing() {
                 </article>
               );
             })}
+          </div>
+
+          <div className="trust">
+            <div className="trust-item"><Icon name="calendar" /><div><strong>Flexible scheduling</strong><span>Book any open time, shown in your own time zone.</span></div></div>
+            <div className="trust-item"><Icon name="lock" /><div><strong>Secure payments</strong><span>Powered by PayPal. Card details never touch this site.</span></div></div>
+            <div className="trust-item"><Icon name="success" /><div><strong>Credits never expire</strong><span>Use them whenever you are ready.</span></div></div>
           </div>
 
           {/* Reschedule policy */}
@@ -89,8 +92,8 @@ export default function Pricing() {
             <h2>Ready to start?</h2>
             <p>Create your free account and buy your first credits.</p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button className="btn btn-sm" style={{ background: '#F7C6D6', color: '#4a1630' }} onClick={() => navigate('/register')}>Create Account</button>
-              <button className="btn btn-sm" style={{ background: 'rgba(255,255,255,.12)', color: 'white', border: '1px solid rgba(255,255,255,.3)' }} onClick={() => navigate('/login')}>Already a student? Log in</button>
+              <button className="btn btn-sm btn-light" onClick={() => navigate('/register')}>Create Account</button>
+              <button className="btn btn-sm btn-ghost-light" onClick={() => navigate('/login')}>Already a student? Log in</button>
             </div>
           </div>
         </div>
