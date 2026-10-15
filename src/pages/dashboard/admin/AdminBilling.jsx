@@ -5,18 +5,20 @@ import { supabase } from '../../../lib/supabase';
 import { formatMoney } from '../../../data/constants';
 import EmptyState from '../../../components/ui/EmptyState';
 import Skeleton, { SkeletonRows } from '../../../components/ui/Skeleton';
+import Receipt, { receiptNumber } from '../../../components/Receipt';
+import Icon from '../../../components/ui/Icon';
 
 const eur = (c) => formatMoney(c, 2);
 const METHODS = { paypal: 'PayPal', stripe: 'Card', payfast: 'PayFast' };
 const STATUS = { paid: ['Paid', 'chip-green'], pending: ['Pending', 'chip-orange'], failed: ['Failed', 'chip-red'], refunded: ['Refunded', 'chip-blue'] };
 
 export default function AdminBilling() {
-  const { showToast } = useApp();
+  const { showToast, openModal } = useApp();
   const [orders, setOrders] = useState(null);
 
   useEffect(() => {
     supabase.from('orders')
-      .select('id, credits, amount_cents, provider, status, created_at, paid_at, profiles(full_name, email)')
+      .select('id, credits, amount_cents, currency, provider, provider_ref, status, created_at, paid_at, profiles(full_name, email)')
       .order('created_at', { ascending: false }).limit(200)
       .then(({ data, error }) => {
         if (error) { showToast('Could not load payments.', 'error'); setOrders([]); } else setOrders(data);
@@ -40,7 +42,7 @@ export default function AdminBilling() {
           ) : (
             <div className="table-scroll">
               <table className="data-table stack-table">
-                <thead><tr><th>Date</th><th>Student</th><th>Credits</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+                <thead><tr><th>Date</th><th>Student</th><th>Credits</th><th>Method</th><th>Amount</th><th>Status</th><th>Receipt</th></tr></thead>
                 <tbody>
                   {orders.map(o => {
                     const [label, cls] = STATUS[o.status] || [o.status, 'chip-blue'];
@@ -52,6 +54,13 @@ export default function AdminBilling() {
                         <td data-label="Method">{METHODS[o.provider] || o.provider}</td>
                         <td data-label="Amount"><strong>{eur(o.amount_cents)}</strong></td>
                         <td data-label="Status"><span className={`chip ${cls}`}>{label}</span></td>
+                        <td data-label="Receipt">
+                          {o.status === 'paid' ? (
+                            <button type="button" className="btn btn-ghost btn-sm" onClick={() => openModal(`Receipt ${receiptNumber(o)}`, <Receipt order={o} student={{ name: o.profiles?.full_name, email: o.profiles?.email }} />)}>
+                              <Icon name="receipt" /> Receipt
+                            </button>
+                          ) : <span className="fine-print" style={{ margin: 0 }}>–</span>}
+                        </td>
                       </tr>
                     );
                   })}

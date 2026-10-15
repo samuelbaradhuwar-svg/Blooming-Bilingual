@@ -903,3 +903,42 @@ body { font-variant-numeric: lining-nums; }
 .nav-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 50px; background: var(--blush); color: var(--plum-deep); font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
 .tab-link .icon { font-size: 1.35rem; }
 @media (max-width: 400px) { .tab-link { font-size: 0.6rem; } .tab-link .icon { font-size: 1.25rem; } }
+
+/* ═══════════ RECEIPT ═══════════ */
+.receipt-sheet { background: white; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: clamp(16px, 4vw, 28px); color: var(--charcoal); font-size: 0.9rem; }
+.receipt-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 2px solid var(--plum); }
+.receipt-brand { display: flex; align-items: center; gap: 12px; }
+.receipt-brand strong { display: block; font-family: var(--font-display); font-size: 1.15rem; color: var(--plum-deep); line-height: 1.2; }
+.receipt-brand span { font-size: 0.8rem; color: var(--ink-muted); }
+.receipt-title { text-align: right; }
+.receipt-title h2 { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; color: var(--plum-deep); line-height: 1.1; }
+.receipt-paid { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 0.75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sage-dark); border: 1.5px solid var(--sage-dark); border-radius: 6px; padding: 1px 8px; }
+.receipt-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 18px; margin: 16px 0; }
+.receipt-meta dt { font-size: 0.7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+.receipt-meta dd { font-weight: 600; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.receipt-parties { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px 24px; padding: 14px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); margin-bottom: 14px; }
+.receipt-parties h3 { font-size: 0.7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 4px; }
+.receipt-parties p { overflow-wrap: anywhere; line-height: 1.5; }
+.receipt-lines { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.receipt-lines th { text-align: left; font-size: 0.7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); padding: 8px 6px; border-bottom: 1px solid var(--border); }
+.receipt-lines td { padding: 12px 6px; vertical-align: top; border-bottom: 1px solid var(--border-soft); }
+.receipt-lines td small { display: block; color: var(--ink-muted); font-size: 0.78rem; margin-top: 2px; }
+.receipt-lines .num { text-align: right; white-space: nowrap; }
+.receipt-lines tfoot td { font-weight: 800; font-size: 1.05rem; border-bottom: none; padding-top: 14px; }
+.receipt-lines tfoot td:first-child { text-align: right; }
+.receipt-thanks { margin-top: 16px; font-size: 0.82rem; color: var(--ink-muted); }
+.receipt-actions { margin-top: 14px; }
+@media (max-width: 480px) { .receipt-lines th:nth-child(3), .receipt-lines td:nth-child(3) { display: none; } }
+
+@page { margin: 14mm; }
+@media print {
+  /* While printing a receipt, hide the whole app except the open dialog, and show just the receipt on the page. */
+  body.printing-receipt #root > *:not(.modal-overlay) { display: none !important; }
+  body.printing-receipt { background: white !important; }
+  body.printing-receipt .modal-overlay { position: static !important; display: block !important; opacity: 1 !important; visibility: visible !important; background: none !important; padding: 0 !important; pointer-events: auto !important; }
+  body.printing-receipt .modal { position: static !important; display: block !important; transform: none !important; max-height: none !important; max-width: none !important; box-shadow: none !important; padding: 0 !important; overflow: visible !important; border-radius: 0 !important; }
+  body.printing-receipt .modal-header, body.printing-receipt .receipt-actions { display: none !important; }
+  body.printing-receipt .receipt-sheet { border: none; padding: 0; font-size: 11pt; }
+  body.printing-receipt .receipt-lines th:nth-child(3), body.printing-receipt .receipt-lines td:nth-child(3) { display: table-cell; }
+  body.printing-receipt * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

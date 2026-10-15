@@ -6,13 +6,14 @@ import { formatMoney } from '../../../data/constants';
 import Icon from '../../../components/ui/Icon';
 import EmptyState from '../../../components/ui/EmptyState';
 import Skeleton, { SkeletonRows } from '../../../components/ui/Skeleton';
+import Receipt, { receiptNumber } from '../../../components/Receipt';
 
 const REASONS = { purchase: 'Purchased credits', booking: 'Booked a lesson', refund: 'Credit refunded', adjustment: 'Adjusted by Neeliën' };
 const METHODS = { paypal: 'PayPal', stripe: 'Card', payfast: 'PayFast' };
 const when = (iso) => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
 export default function StudentCredits({ onBuyCredits }) {
-  const { currentUser, refreshCredits, showToast } = useApp();
+  const { currentUser, refreshCredits, showToast, openModal } = useApp();
   const [orders, setOrders] = useState(null);
   const [ledger, setLedger] = useState(null);
 
@@ -20,7 +21,7 @@ export default function StudentCredits({ onBuyCredits }) {
     refreshCredits?.();
     (async () => {
       const [o, l] = await Promise.all([
-        supabase.from('orders').select('id, credits, amount_cents, provider, status, paid_at, created_at')
+        supabase.from('orders').select('id, credits, amount_cents, currency, provider, provider_ref, status, paid_at, created_at')
           .eq('status', 'paid').order('paid_at', { ascending: false }).limit(100),
         supabase.from('credit_ledger').select('id, delta, reason, note, created_at')
           .order('created_at', { ascending: false }).limit(100),
@@ -63,7 +64,7 @@ export default function StudentCredits({ onBuyCredits }) {
           ) : (
             <div className="table-scroll">
               <table className="data-table stack-table">
-                <thead><tr><th>Date</th><th>Credits</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+                <thead><tr><th>Date</th><th>Credits</th><th>Method</th><th>Amount</th><th>Status</th><th>Receipt</th></tr></thead>
                 <tbody>
                   {orders.map(o => (
                     <tr key={o.id}>
@@ -72,6 +73,11 @@ export default function StudentCredits({ onBuyCredits }) {
                       <td data-label="Method">{METHODS[o.provider] || o.provider}</td>
                       <td data-label="Amount"><strong>{formatMoney(o.amount_cents, 2)}</strong></td>
                       <td data-label="Status"><span className="chip chip-green">Paid</span></td>
+                      <td data-label="Receipt">
+                        <button type="button" className="btn btn-ghost btn-sm" onClick={() => openModal(`Receipt ${receiptNumber(o)}`, <Receipt order={o} student={{ name: currentUser?.name, email: currentUser?.email }} />)}>
+                          <Icon name="receipt" /> Receipt
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
