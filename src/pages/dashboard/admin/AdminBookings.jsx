@@ -61,7 +61,7 @@ export default function AdminBookings() {
   const [tab, setTab] = useState('upcoming');
 
   const load = useCallback(async () => {
-    const base = 'id, starts_at, ends_at, subject, status, meet_url, profiles(full_name, email)';
+    const base = 'id, starts_at, ends_at, subject, status, meet_url, profiles!bookings_student_id_fkey(full_name, email)';
     let { data, error } = await supabase.from('bookings').select(`${base}, booked_by, credit_charged`).order('starts_at', { ascending: true });
     if (error) ({ data, error } = await supabase.from('bookings').select(base).order('starts_at', { ascending: true }));
     if (error) { showToast('Could not load bookings.', 'error'); setRows([]); return; }

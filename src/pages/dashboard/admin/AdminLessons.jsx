@@ -73,7 +73,7 @@ export default function AdminLessons() {
 
   const load = useCallback(async () => {
     const [b, n] = await Promise.all([
-      supabase.from('bookings').select('id, student_id, starts_at, ends_at, subject, status, profiles(full_name)')
+      supabase.from('bookings').select('id, student_id, starts_at, ends_at, subject, status, profiles!bookings_student_id_fkey(full_name)')
         .in('status', ['confirmed', 'completed']).lt('ends_at', new Date().toISOString()).order('starts_at', { ascending: false }),
       supabase.from('lesson_notes').select('booking_id, summary, homework, level, scores'),
     ]);

@@ -46,7 +46,7 @@ export default function BookForStudent({ student: fixed, onDone }) {
     const to = new Date(from.getTime() + 24 * 36e5);
     const [slots, booked] = await Promise.all([
       supabase.rpc('get_available_slots', { p_from: from.toISOString(), p_to: to.toISOString() }),
-      supabase.from('bookings').select('id, starts_at, ends_at, profiles(full_name)')
+      supabase.from('bookings').select('id, starts_at, ends_at, profiles!bookings_student_id_fkey(full_name)')
         .in('status', ['confirmed', 'completed']).gt('ends_at', from.toISOString()).lt('starts_at', to.toISOString()).order('starts_at'),
     ]);
     setOpenTimes(slots.error ? [] : slots.data.map(r => timeIn(tz, new Date(r.starts_at))));

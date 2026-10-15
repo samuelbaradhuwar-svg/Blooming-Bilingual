@@ -35,7 +35,7 @@ export default function AdminHome({ onSwitch }) {
       const since = new Date(); since.setMonth(since.getMonth() - 5); since.setDate(1); since.setHours(0, 0, 0, 0);
       const [students, upcoming, needsNotes, orders] = await Promise.all([
         supabase.rpc('admin_student_overview'),
-        supabase.from('bookings').select('id, starts_at, subject, profiles(full_name)')
+        supabase.from('bookings').select('id, starts_at, subject, profiles!bookings_student_id_fkey(full_name)')
           .eq('status', 'confirmed').gt('ends_at', new Date().toISOString()).order('starts_at').limit(50),
         supabase.from('bookings').select('id', { count: 'exact', head: true })
           .eq('status', 'confirmed').lt('ends_at', new Date().toISOString()),
