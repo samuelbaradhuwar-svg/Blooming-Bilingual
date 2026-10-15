@@ -8,6 +8,7 @@ import Icon from '../../../components/ui/Icon';
 import Hibiscus from '../../../components/ui/Hibiscus';
 import EmptyState from '../../../components/ui/EmptyState';
 import Skeleton, { SkeletonRows } from '../../../components/ui/Skeleton';
+import BookForStudent from '../../../components/BookForStudent';
 
 // The last six calendar months, oldest first, each with the revenue from paid orders.
 function monthlyRevenue(orders) {
@@ -25,7 +26,7 @@ function monthlyRevenue(orders) {
 }
 
 export default function AdminHome({ onSwitch }) {
-  const { currentUser, showToast } = useApp();
+  const { currentUser, showToast, openModal } = useApp();
   const tz = currentUser?.timezone || 'UTC';
   const [data, setData] = useState(null);
 
@@ -63,6 +64,7 @@ export default function AdminHome({ onSwitch }) {
     { icon: 'notes', bg: 'var(--orange-bg)', num: data?.toReview, label: 'Lessons to wrap up', go: 'admin-lessons' },
   ];
   const actions = [
+    { icon: 'calendar', label: 'Book a lesson for a student', run: () => openModal('Book a lesson for a student', <BookForStudent />) },
     { icon: 'students', label: 'View students', go: 'admin-students' },
     { icon: 'calendar', label: 'View bookings', go: 'admin-bookings' },
     { icon: 'mail', label: 'Open messages', go: 'admin-messages' },
@@ -136,7 +138,7 @@ export default function AdminHome({ onSwitch }) {
             <div className="card-title" style={{ marginBottom: 12 }}><Icon name="sparkle" /> Quick actions</div>
             <div className="quick-actions">
               {actions.map(a => (
-                <button key={a.label} type="button" className="qa-item" onClick={() => onSwitch(a.go)}>
+                <button key={a.label} type="button" className="qa-item" onClick={a.run || (() => onSwitch(a.go))}>
                   <span className="qa-icon"><Icon name={a.icon} /></span>
                   <span>{a.label}</span>
                   <Icon name="arrow" className="qa-arrow" />

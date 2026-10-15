@@ -2,12 +2,11 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../../../context/AppContext';
 import { supabase } from '../../../lib/supabase';
 import DashHeader from '../../../components/dashboard/DashHeader';
-import { MONTHS } from '../../../data/constants';
+import { MONTHS, SUBJECTS } from '../../../data/constants';
 import { pad, dateKeyIn, timeIn } from '../../../lib/time';
 import Icon from '../../../components/ui/Icon';
 import Field from '../../../components/ui/Field';
 
-const SUBJECTS = ['Conversational English', 'IELTS Preparation', 'Business English', 'Grammar Focus'];
 
 export default function BookingView({ onBuyCredits }) {
   const { currentUser, refreshCredits, showToast } = useApp();

@@ -942,3 +942,14 @@ body { font-variant-numeric: lining-nums; }
   body.printing-receipt .receipt-lines th:nth-child(3), body.printing-receipt .receipt-lines td:nth-child(3) { display: table-cell; }
   body.printing-receipt * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* Booking for a student */
+.form-label-like { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: var(--ink-soft); }
+.form-warn { display: flex; gap: 8px; align-items: flex-start; font-size: 0.85rem; color: var(--red); background: var(--red-bg); border-radius: var(--radius-sm); padding: 10px 12px; margin: 0 0 14px; }
+.form-hint { display: flex; gap: 8px; align-items: flex-start; font-size: 0.84rem; color: var(--ink-soft); background: var(--cream); border-radius: var(--radius-sm); padding: 10px 12px; margin: 0 0 14px; }
+.check { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1.5px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 10px; cursor: pointer; min-height: 48px; transition: border-color .15s, background-color .15s; }
+.check:hover { border-color: var(--plum); background: var(--cream); }
+.check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--plum); flex-shrink: 0; cursor: pointer; }
+.check strong { display: block; font-size: 0.9rem; color: var(--navy); }
+.check small { display: block; font-size: 0.8rem; color: var(--ink-muted); margin-top: 2px; line-height: 1.45; }
+.check.is-required { border-color: #E3C3D3; background: var(--soft-pink); }

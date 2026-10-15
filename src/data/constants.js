@@ -5,6 +5,7 @@ export const PACKS = [
   { id: 'D', credits: 28, label: 'Bloom',   discount: 0.25, badge: 'Best value',   features: ['28 × 45-min lessons', 'Google Meet link included', 'Lesson notes & homework', 'Progress tracking', 'Private file sharing with Neeliën'] },
 ];
 
+export const SUBJECTS = ['Conversational English', 'IELTS Preparation', 'Business English', 'Grammar Focus'];
 export const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 export function packPrice(credits, discount, rate = 12) {
   return Math.round(rate * credits * (1 - discount));

@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import Icon from './ui/Icon';
 
-export default function CancelModal({ booking, refundable, windowHours, onDone }) {
+export default function CancelModal({ booking, refundable, windowHours, onDone, creditUsed = true }) {
   const { showToast, closeModal, refreshCredits } = useApp();
   const [busy, setBusy] = useState(false);
 
@@ -23,8 +23,10 @@ export default function CancelModal({ booking, refundable, windowHours, onDone }
       <p style={{ fontSize: '.9rem', color: 'var(--ink-soft)', marginBottom: 14 }}>
         Cancel <strong>{booking.subject}</strong>?
       </p>
-      <div style={{ background: refundable ? 'var(--green-bg)' : 'var(--orange-bg)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', fontSize: '.84rem', marginBottom: 18 }}>
-        {refundable
+      <div style={{ background: !creditUsed ? 'var(--cream)' : refundable ? 'var(--green-bg)' : 'var(--orange-bg)', borderRadius: 'var(--radius-sm)', padding: '12px 14px', fontSize: '.84rem', marginBottom: 18 }}>
+        {!creditUsed
+          ? <><Icon name="info" /> This lesson did not use one of your credits, so there is nothing to refund.</>
+          : refundable
           ? <><Icon name="success" weight="fill" /> You are more than {windowHours} hours ahead, so your credit will be refunded.</>
           : <><Icon name="warning" weight="fill" /> This is within {windowHours} hours of the lesson, so your credit will NOT be refunded.</>}
       </div>

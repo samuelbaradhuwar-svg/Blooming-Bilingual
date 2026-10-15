@@ -7,6 +7,7 @@ import Icon from '../../../components/ui/Icon';
 import Field from '../../../components/ui/Field';
 import EmptyState from '../../../components/ui/EmptyState';
 import { SkeletonRows } from '../../../components/ui/Skeleton';
+import BookForStudent from '../../../components/BookForStudent';
 
 function MeetLink({ booking, onDone }) {
   const { showToast, closeModal } = useApp();
@@ -43,7 +44,7 @@ function CancelByTutor({ booking, onDone }) {
   return (
     <div>
       <p style={{ fontSize: '.88rem', color: 'var(--ink-soft)', marginBottom: 14 }}>
-        Cancel {booking.profiles?.full_name}'s lesson? Their credit is always refunded when you cancel.
+        Cancel {booking.profiles?.full_name}'s lesson? {booking.credit_charged === false ? 'No credit was used for this lesson, so nothing is refunded.' : 'Their credit is always refunded when you cancel.'}
       </p>
       <div style={{ display: 'flex', gap: 10 }}>
         <button className="btn btn-ghost btn-full" onClick={closeModal}>Keep it</button>
@@ -60,9 +61,9 @@ export default function AdminBookings() {
   const [tab, setTab] = useState('upcoming');
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('bookings')
-      .select('id, starts_at, ends_at, subject, status, meet_url, profiles(full_name, email)')
-      .order('starts_at', { ascending: true });
+    const base = 'id, starts_at, ends_at, subject, status, meet_url, profiles(full_name, email)';
+    let { data, error } = await supabase.from('bookings').select(`${base}, booked_by, credit_charged`).order('starts_at', { ascending: true });
+    if (error) ({ data, error } = await supabase.from('bookings').select(base).order('starts_at', { ascending: true }));
     if (error) { showToast('Could not load bookings.', 'error'); setRows([]); return; }
     setRows(data);
   }, [showToast]);
@@ -75,7 +76,9 @@ export default function AdminBookings() {
 
   return (
     <>
-      <DashHeader title="Bookings" />
+      <DashHeader title="Bookings">
+        <button className="btn btn-primary btn-sm" onClick={() => openModal('Book a lesson for a student', <BookForStudent onDone={load} />)}><Icon name="calendar" /> Book for a student</button>
+      </DashHeader>
       <div className="dash-main">
         <div className="tabs" role="tablist" aria-label="Booking status">
           {[['upcoming', 'Upcoming', upcoming.length], ['past', 'Past', past.length]].map(([k, l, n]) => (
@@ -95,7 +98,7 @@ export default function AdminBookings() {
                 <li key={b.id} className="lesson-item">
                   <div className="date-tile" aria-hidden="true"><span>{start.toLocaleDateString(undefined, { timeZone: tz, month: 'short' })}</span><strong>{start.toLocaleDateString(undefined, { timeZone: tz, day: 'numeric' })}</strong></div>
                   <div className="lesson-main">
-                    <div className="lesson-title">{b.profiles?.full_name || 'Student'}</div>
+                    <div className="lesson-title">{b.profiles?.full_name || 'Student'}{b.booked_by && <span className="chip chip-blue" style={{ marginLeft: 8 }}>Booked by you</span>}{b.credit_charged === false && <span className="chip chip-orange" style={{ marginLeft: 6 }}>No credit used</span>}</div>
                     <div className="lesson-sub"><Icon name="clock" /> {longDateIn(tz, start)} · {timeIn(tz, start)} · {b.subject}</div>
                     {b.meet_url && <div className="lesson-sub"><Icon name="video" /> <a href={b.meet_url} target="_blank" rel="noreferrer">{b.meet_url}</a></div>}
                   </div>

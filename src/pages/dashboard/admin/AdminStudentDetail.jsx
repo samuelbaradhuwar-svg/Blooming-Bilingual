@@ -9,6 +9,7 @@ import AdjustCredits from './AdjustCredits';
 import Icon from '../../../components/ui/Icon';
 import Field from '../../../components/ui/Field';
 import ChatThread from '../../../components/ChatThread';
+import BookForStudent from '../../../components/BookForStudent';
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const REASONS = { purchase: 'Purchased credits', booking: 'Booked a lesson', refund: 'Refund', adjustment: 'Adjusted by tutor' };
@@ -76,7 +77,10 @@ export default function AdminStudentDetail({ id }) {
         <div className="dash-grid">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div className="card card-pad">
-              <div className="card-title" style={{ marginBottom: 10 }}><Icon name="calendar" /> Next lesson</div>
+              <div className="card-header">
+                <span className="card-title"><Icon name="calendar" /> Next lesson</span>
+                <button className="btn btn-outline btn-sm" onClick={() => openModal('Book a lesson', <BookForStudent student={{ id, full_name: p.full_name, timezone: p.timezone, credits }} onDone={load} />)}><Icon name="calendar" /> Book a lesson</button>
+              </div>
               {next ? (
                 <div className="lesson-hero" style={{ marginBottom: 0 }}>
                   <div style={{ fontSize: '1.05rem', fontWeight: 700 }}>{longDateIn(tz, new Date(next.starts_at))} · {timeIn(tz, new Date(next.starts_at))}</div>

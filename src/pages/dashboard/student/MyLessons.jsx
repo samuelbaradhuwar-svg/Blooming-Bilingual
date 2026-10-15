@@ -25,9 +25,10 @@ export default function MyLessons({ onSwitch }) {
   const [windowHours, setWindowHours] = useState(DEFAULT_WINDOW_HOURS);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('bookings').select('id, starts_at, ends_at, subject, status, meet_url')
-      .order('starts_at', { ascending: true });
+    // The newer columns (who booked, credit used) may not exist until the latest database update has been run: fall back gracefully.
+    const base = 'id, starts_at, ends_at, subject, status, meet_url';
+    let { data, error } = await supabase.from('bookings').select(`${base}, booked_by, credit_charged`).order('starts_at', { ascending: true });
+    if (error) ({ data, error } = await supabase.from('bookings').select(base).order('starts_at', { ascending: true }));
     if (error) { showToast('Could not load your lessons.', 'error'); setBookings([]); return; }
     setBookings(data);
   }, [showToast]);
@@ -92,7 +93,7 @@ export default function MyLessons({ onSwitch }) {
                   <div className="date-tile" aria-hidden="true"><span>{month}</span><strong>{day}</strong></div>
                   <div className="lesson-main">
                     <div className="lesson-title">{longDateIn(tz, start)}</div>
-                    <div className="lesson-sub"><Icon name="clock" /> {timeIn(tz, start)} · 45 min · {b.subject}</div>
+                    <div className="lesson-sub"><Icon name="clock" /> {timeIn(tz, start)} · 45 min · {b.subject}{b.booked_by && <span className="chip chip-blue" style={{ marginLeft: 6 }}>Booked by Neeliën</span>}</div>
                   </div>
                   <span className={`chip ${st.cls}`}>{st.label}</span>
                   {isUpcoming(b) && (
@@ -102,7 +103,7 @@ export default function MyLessons({ onSwitch }) {
                         title={canChange(b) ? '' : `Lessons can be moved up to ${windowHours} hours before`}
                         onClick={() => openModal('Reschedule lesson', <RescheduleModal booking={b} onDone={load} />)}>Reschedule</button>
                       <button className="btn btn-ghost btn-sm"
-                        onClick={() => openModal('Cancel lesson', <CancelModal booking={b} refundable={canChange(b)} windowHours={windowHours} onDone={load} />)}>Cancel</button>
+                        onClick={() => openModal('Cancel lesson', <CancelModal booking={b} refundable={canChange(b)} windowHours={windowHours} onDone={load} creditUsed={b.credit_charged !== false} />)}>Cancel</button>
                     </div>
                   )}
                 </li>
