@@ -60,6 +60,7 @@ export default function AdminStudentDetail({ id }) {
   return (
     <>
       <DashHeader title={p.full_name || 'Student'}>
+        <button className="btn btn-primary btn-sm" onClick={() => openModal('Book a lesson', <BookForStudent student={{ id, full_name: p.full_name, timezone: p.timezone, credits }} onDone={load} />)}><Icon name="calendar" /> Book a lesson</button>
         <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard/admin-students')}><Icon name="back" /> All students</button>
       </DashHeader>
       <div className="dash-main">
