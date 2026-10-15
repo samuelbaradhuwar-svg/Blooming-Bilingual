@@ -953,3 +953,27 @@ body { font-variant-numeric: lining-nums; }
 .check strong { display: block; font-size: 0.9rem; color: var(--navy); }
 .check small { display: block; font-size: 0.8rem; color: var(--ink-muted); margin-top: 2px; line-height: 1.45; }
 .check.is-required { border-color: #E3C3D3; background: var(--soft-pink); }
+
+/* ---- Tutor view of a student: header, summary, sections ---- */
+.profile-head { display: grid; grid-template-columns: auto 1fr; gap: 14px 18px; align-items: center; padding: 20px 22px; margin-bottom: 14px; }
+.profile-avatar { width: 64px; height: 64px; font-size: 1.3rem; }
+.profile-id { min-width: 0; }
+.profile-id h2 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; color: var(--navy); line-height: 1.2; margin: 0 0 6px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.profile-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; font-size: 0.84rem; color: var(--ink-soft); }
+.profile-meta span { display: inline-flex; align-items: center; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.profile-meta .icon { color: var(--plum); flex-shrink: 0; }
+.profile-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 14px; border-top: 1px solid var(--border-soft); }
+.profile-summary { margin-bottom: 16px; }
+.profile-grid { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+.profile-stack { display: flex; flex-direction: column; gap: 16px; }
+@media (min-width: 900px) {
+  .profile-head { grid-template-columns: auto 1fr auto; }
+  .profile-actions { grid-column: auto; border-top: none; padding-top: 0; justify-content: flex-end; max-width: 330px; }
+  .profile-grid { grid-template-columns: 1fr 1fr; }
+  .profile-wide { grid-column: 1 / -1; }
+}
+.profile-panel { animation: page-fade .2s var(--ease); }
+@media (prefers-reduced-motion: reduce) { .profile-panel { animation: none; } }
+.profile-note { display: flex; align-items: flex-start; gap: 8px; margin-top: 4px; font-size: 0.84rem; color: var(--ink-soft); line-height: 1.5; }
+.profile-note .icon { color: var(--plum); margin-top: 3px; flex-shrink: 0; }
+@media (max-width: 480px) { .profile-tabs { gap: 2px; } .profile-tabs .tab { padding: 8px 10px; font-size: 0.82rem; } }
