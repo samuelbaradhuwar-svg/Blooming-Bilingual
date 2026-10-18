@@ -66,6 +66,8 @@ async function oauthCallback(url: URL) {
     id: 1, refresh_token: tok.refresh_token, account_email: email, connected_at: new Date().toISOString(),
   });
   if (error) { console.error(error.message); return back('failed'); }
+  // A different Google account has a different calendar: forget the old sync bookmark so the next check reads everything fresh.
+  try { await db.from('calendar_sync_state').update({ sync_token: null, full_synced_at: null }).eq('id', 1); } catch { /* table is added by a later update */ }
   return back('connected');
 }
 
@@ -100,9 +102,19 @@ async function gcal(token: string, method: string, path: string, body?: unknown)
     body: body ? JSON.stringify(body) : undefined,
   });
   if (method === 'DELETE' && (res.status === 404 || res.status === 410)) return null;
-  if (!res.ok) throw new Error(`Google Calendar ${method} failed (${res.status}): ${await res.text()}`);
+  if (!res.ok) throw Object.assign(new Error(`Google Calendar ${method} failed (${res.status}): ${await res.text()}`), { status: res.status });
   return res.status === 204 ? null : await res.json();
 }
+
+// Marks an event as the website's own, so the calendar sync never mistakes it for a Preply lesson or a personal appointment.
+const ownTag = (bookingId: string) => ({ private: { bb_booking_id: bookingId } });
+
+// A short, plain-language note in the tutor's activity feed (best effort: never breaks a booking).
+async function note(kind: string, message: string, details?: unknown) {
+  try { await db.from('calendar_sync_log').insert({ kind, message, details: details ?? null }); } catch { /* the activity feed is optional */ }
+}
+const when = (d: string) =>
+  new Date(d).toLocaleString('en-GB', { timeZone: 'Africa/Johannesburg', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 // ───────── booking events ─────────
 async function bookingEvent(req: Request) {
@@ -124,23 +136,50 @@ async function bookingEvent(req: Request) {
     .eq('id', booking_id).maybeSingle();
   if (!b) return json({ skipped: 'booking not found' });
 
-  const token = await accessToken();
-  const hasEvent = b.google_event_id && b.google_event_id !== 'pending';
+  try {
+    return await syncBooking(await accessToken(), b);
+  } catch (e) {
+    // Remember the failure so the tutor can see it, and let the database retry (google_meet_backfill runs every 5 minutes).
+    const what = b.status === 'cancelled' ? 'remove a cancelled lesson from' : 'update';
+    await note('calendar_write_failed', `Could not ${what} your Google Calendar for the lesson on ${when(b.starts_at)}. It will be tried again automatically.`,
+      { booking_id: b.id, error: (e instanceof Error ? e.message : String(e)).slice(0, 200) });
+    throw e;
+  }
+}
 
-  // Cancelled → remove the event (Google also tells the student).
+async function syncBooking(token: string, b: any) {
+  const hasEvent = b.google_event_id && b.google_event_id !== 'pending';
+  const times = {
+    start: { dateTime: new Date(b.starts_at).toISOString(), timeZone: 'UTC' },
+    end: { dateTime: new Date(b.ends_at).toISOString(), timeZone: 'UTC' },
+  };
+  const pushed = { google_synced_starts_at: b.starts_at, google_sync_at: new Date().toISOString() };
+
+  // Cancelled → remove the event (Google also tells the student). Once it is gone the time is free for Preply again.
   if (b.status === 'cancelled') {
-    if (hasEvent) await gcal(token, 'DELETE', `/${b.google_event_id}?sendUpdates=all`);
+    if (hasEvent) {
+      await gcal(token, 'DELETE', `/${b.google_event_id}?sendUpdates=all`);
+      await db.from('bookings').update({ google_event_id: null }).eq('id', b.id).eq('google_event_id', b.google_event_id);
+      await note('calendar_write', `The cancelled lesson on ${when(b.starts_at)} was removed from your Google Calendar. That time is free again.`, { booking_id: b.id });
+    }
     return json({ ok: true, action: 'deleted' });
   }
   if (b.status !== 'confirmed') return json({ skipped: b.status });
 
-  // Moved → update the event.
+  // Moved → update the same event (never a second one).
   if (hasEvent) {
-    await gcal(token, 'PATCH', `/${b.google_event_id}?sendUpdates=all`, {
-      start: { dateTime: new Date(b.starts_at).toISOString(), timeZone: 'UTC' },
-      end: { dateTime: new Date(b.ends_at).toISOString(), timeZone: 'UTC' },
-    });
-    return json({ ok: true, action: 'updated' });
+    try {
+      await gcal(token, 'PATCH', `/${b.google_event_id}?sendUpdates=all`, { ...times, extendedProperties: ownTag(b.id) });
+      await db.from('bookings').update(pushed).eq('id', b.id);
+      await note('calendar_write', `The lesson was moved in your Google Calendar to ${when(b.starts_at)}.`, { booking_id: b.id });
+      return json({ ok: true, action: 'updated' });
+    } catch (e) {
+      // The event was deleted by hand in Google Calendar: put it back rather than failing forever.
+      const status = (e as { status?: number }).status;
+      if (status !== 404 && status !== 410) throw e;
+      await db.from('bookings').update({ google_event_id: null }).eq('id', b.id).eq('google_event_id', b.google_event_id);
+      b = { ...b, google_event_id: null };
+    }
   }
 
   // New → claim the booking so two overlapping calls can't create two events.
@@ -158,10 +197,11 @@ async function bookingEvent(req: Request) {
     let ev = await gcal(token, 'POST', '?conferenceDataVersion=1&sendUpdates=all', {
       summary: `English lesson — ${first}`,
       description: `${b.subject}\n\nManage your lessons: ${SITE_URL}/dashboard/lessons`,
-      start: { dateTime: new Date(b.starts_at).toISOString(), timeZone: 'UTC' },
-      end: { dateTime: new Date(b.ends_at).toISOString(), timeZone: 'UTC' },
+      ...times,
       attendees: student?.email ? [{ email: student.email, displayName: student.full_name || undefined }] : [],
       conferenceData: { createRequest: { requestId: b.id, conferenceSolutionKey: { type: 'hangoutsMeet' } } },
+      extendedProperties: ownTag(b.id),
+      transparency: 'opaque',          // shows as "busy", which is what makes Preply block the time
       guestsCanModify: false,
       guestsCanInviteOthers: false,
       reminders: { useDefault: true },
@@ -172,6 +212,8 @@ async function bookingEvent(req: Request) {
       ev = await gcal(token, 'GET', `/${ev.id}?conferenceDataVersion=1`);
     }
     await db.from('bookings').update({ google_event_id: ev.id, meet_url: b.meet_url ?? meetLinkOf(ev) }).eq('id', b.id);
+    await db.from('bookings').update(pushed).eq('id', b.id);   // tracking columns from the latest database update: best effort so it can never block saving the event id
+    await note('calendar_write', `A website lesson on ${when(b.starts_at)} was added to your Google Calendar. Preply will see that time as busy.`, { booking_id: b.id });
     return json({ ok: true, action: 'created', meet: !!meetLinkOf(ev) });
   } catch (e) {
     await db.from('bookings').update({ google_event_id: null }).eq('id', b.id).eq('google_event_id', 'pending');

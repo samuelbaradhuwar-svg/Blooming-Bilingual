@@ -20,6 +20,7 @@ const ADMIN_NAV = [
   { view: 'admin-home',      icon: 'home',     label: 'Dashboard',    section: 'Overview' },
   { view: 'admin-students',  icon: 'students', label: 'Students' },
   { view: 'admin-bookings',  icon: 'calendar', label: 'Bookings' },
+  { view: 'admin-calendar',  icon: 'sync',     label: 'Calendar sync' },
   { view: 'admin-messages',  icon: 'chat',     label: 'Messages' },
   { view: 'admin-enquiries', icon: 'mail',     label: 'Enquiries' },
   { view: 'admin-lessons',   icon: 'lessons',  label: 'Lessons',      section: 'Content' },

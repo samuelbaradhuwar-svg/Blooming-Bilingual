@@ -28,3 +28,15 @@ export function zonedToUtc(tz, dateStr, timeStr) {
   t = guess - offsetAt(t);
   return new Date(t);
 }
+
+// "just now", "5 minutes ago", "3 hours ago", "2 days ago"
+export function timeAgo(d, now = Date.now()) {
+  const secs = Math.max(0, Math.round((now - new Date(d).getTime()) / 1000));
+  if (secs < 45) return 'just now';
+  const mins = Math.round(secs / 60);
+  if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs} hour${hrs === 1 ? '' : 's'} ago`;
+  const days = Math.round(hrs / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}

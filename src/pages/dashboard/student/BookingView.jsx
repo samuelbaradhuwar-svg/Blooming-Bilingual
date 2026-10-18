@@ -20,6 +20,7 @@ export default function BookingView({ onBuyCredits }) {
   const [selectedSlot, setSelectedSlot] = useState(null); // ISO string
   const [subject, setSubject] = useState(SUBJECTS[0]);
   const [busy, setBusy] = useState(false);
+  const [paused, setPaused] = useState(false);     // true while the tutor's calendar can't be verified: nothing is offered rather than guessed
 
   const year = bookMonth.getFullYear();
   const month = bookMonth.getMonth();
@@ -31,13 +32,23 @@ export default function BookingView({ onBuyCredits }) {
     // pad a day each side so time-zone offsets can't hide edge-of-month slots
     const from = new Date(Date.UTC(year, month, 1) - 36e5 * 24);
     const to = new Date(Date.UTC(year, month + 1, 1) + 36e5 * 24);
-    const { data, error } = await supabase.rpc('get_available_slots', { p_from: from.toISOString(), p_to: to.toISOString() });
+    const [{ data, error }, status] = await Promise.all([
+      supabase.rpc('get_available_slots', { p_from: from.toISOString(), p_to: to.toISOString() }),
+      supabase.rpc('calendar_availability_status'),
+    ]);
+    setPaused(!status.error && status.data?.ok === false);
     if (error) showToast('Could not load available times.', 'error');
     setSlots(error ? [] : data.map(r => new Date(r.starts_at)));
     setLoading(false);
   }, [year, month, showToast]);
 
   useEffect(() => { loadSlots(); }, [loadSlots]);
+  // While paused, look again every minute so the page recovers on its own.
+  useEffect(() => {
+    if (!paused) return undefined;
+    const t = setInterval(loadSlots, 60000);
+    return () => clearInterval(t);
+  }, [paused, loadSlots]);
 
   // Group open slots by the student's local date.
   const slotsByDay = useMemo(() => {
@@ -92,6 +103,12 @@ export default function BookingView({ onBuyCredits }) {
           <Icon name="globe" /> Times are shown in <strong>{tz.replace(/_/g, ' ')}</strong> (your time zone)
         </p>
 
+        {paused && (
+          <p className="form-warn" role="alert">
+            <Icon name="warning" weight="fill" /> Booking is paused for a few minutes while we double-check Neeliën’s calendar. This protects you from double bookings. This page checks again by itself, or try again shortly.
+          </p>
+        )}
+
         <div className="booking-flow">
           <div className="card card-pad">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
@@ -117,7 +134,7 @@ export default function BookingView({ onBuyCredits }) {
                 );
               })}
             </div>
-            {!loading && slots.length === 0 && (
+            {!loading && slots.length === 0 && !paused && (
               <p className="fine-print">No open times this month. Try the next month.</p>
             )}
           </div>

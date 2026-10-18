@@ -3,7 +3,7 @@ import {
   EnvelopeSimple, Clock, VideoCamera, Globe, NotePencil, Target, Plant, FlowerLotus, ChatCircleText,
   Trophy, Briefcase, Books, Check, CheckCircle, WarningCircle, XCircle, X, UploadSimple, Lock,
   CreditCard, SignOut, ArrowRight, Sparkle, FileText, LinkSimple, PaperPlaneTilt, CurrencyCircleDollar,
-  List, Receipt, Student, Info, Gear, ChartBar, DownloadSimple, Eye, Trash, MagnifyingGlass, ArrowLeft, Bell, UserCircle,
+  List, Receipt, Student, Info, Gear, ChartBar, DownloadSimple, Eye, Trash, MagnifyingGlass, ArrowLeft, Bell, UserCircle, ArrowsClockwise,
 } from '@phosphor-icons/react';
 
 // One place that decides which icon means what, so the whole site stays consistent.
@@ -15,7 +15,7 @@ const ICONS = {
   warning: WarningCircle, error: XCircle, close: X, upload: UploadSimple, lock: Lock, card: CreditCard,
   signout: SignOut, arrow: ArrowRight, sparkle: Sparkle, doc: FileText, link: LinkSimple, send: PaperPlaneTilt,
   money: CurrencyCircleDollar, menu: List, receipt: Receipt, student: Student, info: Info, settings: Gear,
-  chart: ChartBar, download: DownloadSimple, view: Eye, trash: Trash, search: MagnifyingGlass, back: ArrowLeft, bell: Bell, user: UserCircle,
+  chart: ChartBar, download: DownloadSimple, view: Eye, trash: Trash, search: MagnifyingGlass, back: ArrowLeft, bell: Bell, user: UserCircle, sync: ArrowsClockwise,
 };
 
 /** Decorative by default (hidden from screen readers). Pass `label` when the icon alone carries meaning. */

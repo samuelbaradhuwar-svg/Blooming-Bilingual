@@ -21,6 +21,7 @@ import AdminSchedule from './dashboard/admin/AdminSchedule';
 import AdminBilling from './dashboard/admin/AdminBilling';
 import AdminEnquiries from './dashboard/admin/AdminEnquiries';
 import AdminChat from './dashboard/admin/AdminChat';
+import AdminCalendarSync from './dashboard/admin/AdminCalendarSync';
 import StudentChat from './dashboard/student/StudentChat';
 
 const STUDENT_DEFAULT = 'home';
@@ -48,6 +49,7 @@ export default function Dashboard() {
         case 'admin-home':      return <AdminHome onSwitch={switchView} />;
         case 'admin-students':  return id ? <AdminStudentDetail key={id} id={id} /> : <AdminStudents />;
         case 'admin-bookings':  return <AdminBookings />;
+        case 'admin-calendar':  return <AdminCalendarSync onSwitch={switchView} />;
         case 'admin-lessons':   return <AdminLessons />;
         case 'admin-resources': return <ResourcesView admin />;
         case 'admin-billing':   return <AdminBilling />;

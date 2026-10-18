@@ -29,6 +29,7 @@ export default function AdminHome({ onSwitch }) {
   const { currentUser, showToast, openModal } = useApp();
   const tz = currentUser?.timezone || 'UTC';
   const [data, setData] = useState(null);
+  const [sync, setSync] = useState(null);   // calendar health, so a problem is seen the moment she opens her dashboard
 
   useEffect(() => {
     (async () => {
@@ -50,6 +51,10 @@ export default function AdminHome({ onSwitch }) {
       });
     })();
   }, [showToast]);
+
+  useEffect(() => {
+    supabase.rpc('admin_calendar_overview').then(({ data: o, error }) => { if (!error) setSync(o); });
+  }, []);
 
   const today = dateKeyIn(tz, new Date());
   const todays = (data?.upcoming || []).filter(b => dateKeyIn(tz, new Date(b.starts_at)) === today);
@@ -80,6 +85,16 @@ export default function AdminHome({ onSwitch }) {
           <h2 className="welcome-title">{getGreeting()}, {first}</h2>
           <p>{data ? (todays.length ? `You have ${todays.length} lesson${todays.length > 1 ? 's' : ''} today.` : 'No lessons today. Enjoy the quiet.') : 'Loading your day…'}</p>
         </section>
+
+        {sync && (sync.health === 'down' || sync.health === 'warning' || sync.open_conflicts > 0 || sync.failed_writes > 0) && (
+          <button type="button" className={`sync-banner is-${sync.health === 'down' || sync.open_conflicts > 0 ? 'bad' : 'warn'}`} onClick={() => onSwitch('admin-calendar')}>
+            <Icon name="warning" weight="fill" className="sync-banner-icon" />
+            <div>
+              <strong>{sync.health === 'down' ? 'Booking is paused: your calendar could not be checked' : sync.open_conflicts > 0 ? `${sync.open_conflicts} double booking${sync.open_conflicts > 1 ? 's' : ''} to sort out` : sync.failed_writes > 0 ? 'A lesson is not up to date in your Google Calendar' : 'Your calendar check is struggling'}</strong>
+              <p>Open Calendar sync to see what is happening and what to do.</p>
+            </div>
+          </button>
+        )}
 
         <div className="dash-grid-4" style={{ marginBottom: 20 }}>
           {stats.map(s => (
