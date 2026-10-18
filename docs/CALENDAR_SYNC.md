@@ -89,3 +89,21 @@ Step 4 is the only way to prove the Preply half works, because it depends on Pre
 | Red: "Booking is paused" | Calendar unreachable for 15+ minutes. | Press **Check now**. If it says to reconnect, use *Hours & leave* to reconnect Google. |
 | "A double booking" | A Preply lesson and a website lesson overlap. | Move or cancel one of them (a student is notified when you cancel), then it clears itself. Or press *I have sorted this*. |
 | "Not in your Google Calendar yet" | A calendar update failed. | It retries every 5 minutes; **Try again now** forces it. |
+
+## Verified results (18 October 2026)
+
+Tested against the live database and the live Google Calendar of the connected account.
+
+| Scenario | How it was tested | Result |
+|---|---|---|
+| 1. Preply booking blocks the website | A real busy event was added to Google Calendar | Website noticed it after about 45 seconds, labelled it a Preply lesson and stopped offering that slot |
+| 2. Website booking reaches Google Calendar | A real lesson was booked on a student account | Event created within seconds with Meet link and "busy" status; the sync did not mistake it for an outside event and raised no false clash |
+| 3. Simultaneous bookings | Two separate database connections took overlapping slots at the same moment | The second was held waiting for 10 seconds, then refused once the first committed. Only one booking exists |
+| 4. Clash with an existing website lesson | Database scenario with a Preply-style event | Flagged for the tutor once, nothing cancelled, no duplicate flags |
+| 5. Cancellation releases the slot | The real Google event was deleted | Slot offered again at the next check; release logged |
+| 6. Rescheduling | Database scenarios (Preply move, website move, calendar-side move, calendar-side delete) | Old time released, new time blocked, no duplicates; moved or deleted website events flagged, never overwritten |
+| 7. Google Calendar unavailable | Sync logic against a fake failing Google (retries, bad answers, expired bookmark) and database pause rules | Failures retried and recorded, nothing half-applied, booking pauses after 15 minutes without a good check and recovers by itself |
+
+Also checked: cancelling a website lesson removed its Google event and cleared its record, the audit trail read "created, then cancelled", and no credit moved. Students and signed-out visitors cannot read or write any calendar data.
+
+**Not testable from here:** that Preply itself blocks and releases times based on Google Calendar. That depends on Neeliën's Preply settings (setup step 3).
