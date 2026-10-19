@@ -3,8 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import Icon from '../ui/Icon';
-import { BrandMark } from '../ui/Brand';
-import { BRAND } from '../../data/brand';
+import Brand from '../ui/Brand';
 
 export const STUDENT_NAV = [
   { view: 'home',      icon: 'home',     label: 'Dashboard' },
@@ -63,11 +62,8 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
       <aside className={`sidebar ${open ? 'open' : ''}`} aria-label="Dashboard navigation">
         {/* Logo */}
         <div className="sidebar-logo">
-          <BrandMark size={36} tone="light" />
-          <div>
-            <div className="sidebar-logo-name">{BRAND.short}</div>
-            <div className="sidebar-logo-sub">{isAdmin ? 'Tutor Portal' : 'Student Portal'}</div>
-          </div>
+          <Brand as="div" tone="light" size={40} />
+          <div className="sidebar-logo-sub">{isAdmin ? 'Tutor Portal' : 'Student Portal'}</div>
         </div>
 
         {/* Credit widget (students only) */}

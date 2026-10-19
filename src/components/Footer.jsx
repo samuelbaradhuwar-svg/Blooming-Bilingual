@@ -7,7 +7,7 @@ export default function Footer() {
     <footer className="main-footer">
       <div className="footer-grid">
         <div className="footer-brand">
-          <Brand tone="light" />
+          <Brand tone="light" size={92} tagline />
           <p>One-on-one online English tutoring by Neeliën Van Rooyen. One credit = one 45-minute lesson.</p>
         </div>
         <nav className="footer-col" aria-label="Explore">
