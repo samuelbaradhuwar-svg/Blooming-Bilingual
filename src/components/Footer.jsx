@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import Icon from './ui/Icon';
 import Brand from './ui/Brand';
+import Hibiscus from './ui/Hibiscus';
 
 export default function Footer() {
   return (
     <footer className="main-footer">
+      <Hibiscus variant="line" className="footer-deco" />
       <div className="footer-grid">
         <div className="footer-brand">
           <Brand tone="light" size={92} tagline />
