@@ -179,11 +179,22 @@ export function AppProvider({ children }) {
     setCurrentUser(u => ({ ...u, timezone }));
   }, [currentUser, showToast]);
 
+  // Save the details a person may edit themselves (their name, country and time zone). Role, level and email are protected in the database.
+  const updateProfile = useCallback(async ({ full_name, country, timezone }) => {
+    if (!currentUser) return { ok: false };
+    const patch = { full_name: (full_name || '').trim(), country: country || null, timezone };
+    const { error } = await supabase.from('profiles').update(patch).eq('id', currentUser.id);
+    if (error) { showToast('Could not save your profile. Please try again.', 'error'); return { ok: false }; }
+    const name = patch.full_name || currentUser.email;
+    setCurrentUser(u => ({ ...u, name, initials: initialsOf(name), country: patch.country, timezone }));
+    return { ok: true };
+  }, [currentUser, showToast]);
+
   const value = useMemo(() => ({
-    currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, chatUnread, refreshChatUnread,
+    currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, updateProfile, chatUnread, refreshChatUnread,
     toast, showToast,
     modal, openModal, closeModal,
-  }), [currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, chatUnread, refreshChatUnread, toast, showToast, modal, openModal, closeModal]);
+  }), [currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, updateProfile, chatUnread, refreshChatUnread, toast, showToast, modal, openModal, closeModal]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

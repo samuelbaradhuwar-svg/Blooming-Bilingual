@@ -109,15 +109,22 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
 
         {/* Footer */}
         <div className="sidebar-footer">
-          <div className="sidebar-user">
-            <div className="sidebar-user-avatar" style={{ background: currentUser?.color }}>
+          <button
+            type="button"
+            className="sidebar-user"
+            onClick={() => { onSwitch('profile'); onClose(); }}
+            aria-current={activeView === 'profile' ? 'page' : undefined}
+            aria-label={`Your profile: ${currentUser?.name}`}
+          >
+            <span className="sidebar-user-avatar" style={{ background: currentUser?.color }}>
               {currentUser?.initials}
-            </div>
-            <div>
-              <div className="sidebar-user-name">{currentUser?.name}</div>
-              <div className="sidebar-user-role">{isAdmin ? 'Tutor · Admin' : 'Student'}</div>
-            </div>
-          </div>
+            </span>
+            <span className="sidebar-user-text">
+              <span className="sidebar-user-name">{currentUser?.name}</span>
+              <span className="sidebar-user-role">{isAdmin ? 'Tutor · Admin' : 'Student'} · View profile</span>
+            </span>
+            <Icon name="arrow" className="sidebar-user-go" />
+          </button>
           <button className="sidebar-link sidebar-signout" onClick={handleLogout}>
             <span className="sl-icon"><Icon name="signout" /></span> Sign Out
           </button>

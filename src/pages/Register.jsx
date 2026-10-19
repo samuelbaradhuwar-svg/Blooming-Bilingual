@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { COUNTRIES } from '../data/constants';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Field from '../components/ui/Field';
@@ -43,7 +44,7 @@ export default function Register() {
           {id => (
             <select id={id} name="country" autoComplete="country-name" value={form.country} onChange={set('country')}>
               <option value="">Select your country</option>
-              {['South Africa','Netherlands','Sweden','Japan','Germany','France','Brazil','UAE','Other'].map(c => <option key={c}>{c}</option>)}
+              {COUNTRIES.map(c => <option key={c}>{c}</option>)}
             </select>
           )}
         </Field>

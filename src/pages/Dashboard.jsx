@@ -23,6 +23,7 @@ import AdminEnquiries from './dashboard/admin/AdminEnquiries';
 import AdminChat from './dashboard/admin/AdminChat';
 import AdminCalendarSync from './dashboard/admin/AdminCalendarSync';
 import StudentChat from './dashboard/student/StudentChat';
+import ProfileView from './dashboard/ProfileView';
 
 const STUDENT_DEFAULT = 'home';
 const ADMIN_DEFAULT = 'admin-home';
@@ -43,6 +44,8 @@ export default function Dashboard() {
   const switchView = (v) => navigate(v === defaultView ? '/dashboard' : `/dashboard/${v}`);
 
   const renderView = () => {
+    // The profile page is the same for the tutor and for students.
+    if (activeView === 'profile') return <ProfileView onSwitch={switchView} />;
     // ── ADMIN VIEWS ──
     if (isAdmin) {
       switch (activeView) {

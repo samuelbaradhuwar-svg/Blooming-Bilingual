@@ -29,6 +29,11 @@ export default function DashHeader({ title, children }) {
             {chatUnread > 0 && <span className="bell-badge" aria-hidden="true">{chatUnread > 9 ? '9+' : chatUnread}</span>}
           </button>
         )}
+        {currentUser && (
+          <button type="button" className="header-avatar" onClick={() => navigate('/dashboard/profile')} aria-label="Your profile" title="Your profile" style={{ background: currentUser.color }}>
+            {currentUser.initials}
+          </button>
+        )}
         {children}
       </div>
     </div>

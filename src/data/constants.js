@@ -23,3 +23,12 @@ export const CURRENCY_SYMBOL = '$';
 export const CURRENCY_CODE = 'usd';
 export const formatMoney = (cents, decimals = 0) =>
   `${CURRENCY_SYMBOL}${(cents / 100).toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+
+// Countries offered when someone fills in their profile (anyone else can choose "Other").
+export const COUNTRIES = [
+  'Argentina', 'Australia', 'Austria', 'Belgium', 'Brazil', 'Canada', 'Chile', 'China', 'Colombia', 'Czechia', 'Denmark', 'Egypt',
+  'Finland', 'France', 'Germany', 'Greece', 'Hong Kong', 'Hungary', 'India', 'Indonesia', 'Ireland', 'Israel', 'Italy', 'Japan',
+  'Kenya', 'Mexico', 'Morocco', 'Netherlands', 'New Zealand', 'Nigeria', 'Norway', 'Poland', 'Portugal', 'Qatar', 'Romania',
+  'Saudi Arabia', 'Singapore', 'South Africa', 'South Korea', 'Spain', 'Sweden', 'Switzerland', 'Taiwan', 'Thailand', 'Turkey',
+  'UAE', 'Ukraine', 'United Kingdom', 'United States', 'Vietnam', 'Other',
+];

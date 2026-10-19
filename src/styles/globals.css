@@ -300,7 +300,12 @@ button.stat-card:active { transform: scale(.99); }
 .sidebar-signout:hover { color: white; background: rgba(255,255,255,0.07); }
 .sl-icon { width: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
 .sidebar-footer { padding: 12px 10px 0; border-top: 1px solid rgba(255,255,255,0.09); margin-top: auto; }
-.sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); }
+.sidebar-user { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); width: 100%; border: none; background: none; color: inherit; font-family: inherit; text-align: left; cursor: pointer; transition: background-color .15s; }
+.sidebar-user:hover, .sidebar-user[aria-current="page"] { background: rgba(255,255,255,0.08); }
+.sidebar-user-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.sidebar-user-text > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-user-go { color: var(--blush); opacity: .7; flex-shrink: 0; }
+.sidebar-user:hover .sidebar-user-go { opacity: 1; }
 .sidebar-user-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: white; flex-shrink: 0; }
 .sidebar-user-name { font-size: 0.875rem; font-weight: 600; color: white; line-height: 1.25; }
 .sidebar-user-role { font-size: 0.75rem; color: rgba(255,255,255,0.62); }
@@ -1026,3 +1031,14 @@ button.sync-banner:hover { box-shadow: var(--shadow-sm); }
 .attention-item .hw-info span { display: block; }
 
 @media (max-width: 520px) { .footer-brand .brand { --h: 76px !important; } }
+
+/* ---- Profile page and header shortcut ---- */
+.header-avatar { width: 38px; height: 38px; border-radius: 50%; border: none; color: white; font-family: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: var(--lift); transition: transform .15s var(--ease), box-shadow .15s; }
+.header-avatar:hover { transform: scale(1.06); box-shadow: var(--lift), 0 0 0 2px rgba(201,165,92,.55); }
+.profile-avatar.is-big { width: 76px; height: 76px; font-size: 1.6rem; font-family: var(--font-display); font-weight: 600; box-shadow: var(--lift), 0 0 0 3px rgba(201,165,92,.35); }
+.profile-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tz-now { margin: 6px 0 0; font-size: 0.82rem; color: var(--ink-soft); line-height: 1.6; }
+.tz-now .icon { color: var(--plum); vertical-align: -2px; margin-right: 6px; }
+.linkish { background: none; border: none; padding: 0; font: inherit; font-weight: 600; color: var(--plum); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.field-readonly { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--cream); border: 1px solid var(--border-soft); color: var(--ink-soft); font-size: 0.95rem; overflow-wrap: anywhere; }
+.field-readonly .icon { color: var(--plum); flex-shrink: 0; }

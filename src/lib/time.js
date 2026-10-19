@@ -40,3 +40,22 @@ export function timeAgo(d, now = Date.now()) {
   const days = Math.round(hrs / 24);
   return `${days} day${days === 1 ? '' : 's'} ago`;
 }
+
+// Every time zone the browser knows (grouped by region for a select box), and this device's own.
+const FALLBACK_ZONES = ['Africa/Cairo', 'Africa/Johannesburg', 'Africa/Lagos', 'Africa/Nairobi', 'America/Argentina/Buenos_Aires', 'America/Bogota', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Mexico_City', 'America/New_York', 'America/Sao_Paulo', 'America/Toronto', 'Asia/Bangkok', 'Asia/Dubai', 'Asia/Hong_Kong', 'Asia/Jakarta', 'Asia/Kolkata', 'Asia/Seoul', 'Asia/Shanghai', 'Asia/Singapore', 'Asia/Tokyo', 'Australia/Sydney', 'Europe/Amsterdam', 'Europe/Berlin', 'Europe/Istanbul', 'Europe/London', 'Europe/Madrid', 'Europe/Paris', 'Europe/Stockholm', 'Pacific/Auckland'];
+export function timeZoneGroups() {
+  let zones = FALLBACK_ZONES;
+  try { if (typeof Intl.supportedValuesOf === 'function') zones = Intl.supportedValuesOf('timeZone').filter(z => z.includes('/')); } catch { /* use the short list */ }
+  const groups = {};
+  for (const z of zones) (groups[z.split('/')[0]] ||= []).push(z);
+  return groups;
+}
+export function deviceTimeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch { return null; }
+}
+// "Europe/Amsterdam" -> "Amsterdam (Europe)"; "America/Argentina/Buenos_Aires" -> "Argentina / Buenos Aires (America)"
+export function prettyZone(z) {
+  const parts = String(z || '').split('/');
+  if (parts.length < 2) return String(z || '').replace(/_/g, ' ');
+  return `${parts.slice(1).join(' / ').replace(/_/g, ' ')} (${parts[0]})`;
+}
