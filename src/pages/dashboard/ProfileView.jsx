@@ -7,6 +7,7 @@ import { COUNTRIES } from '../../data/constants';
 import { timeZoneGroups, deviceTimeZone, timeIn, prettyZone } from '../../lib/time';
 import Icon from '../../components/ui/Icon';
 import Field from '../../components/ui/Field';
+import { TUTOR_AVATARS, DEFAULT_TUTOR_AVATAR, tutorAvatarById } from '../../components/ui/tutorArt';
 import { Avatar, PersonAvatar, TutorAvatar, AVATARS, AVATAR_LEVELS, avatarById, levelFor } from '../../components/ui/avatars';
 
 const MIN_PASSWORD = 6;   // the same rule as creating an account
@@ -76,7 +77,7 @@ export default function ProfileView({ onSwitch }) {
     setAvBusy(true);
     const res = await saveAvatar(id);
     setAvBusy(false);
-    if (res.ok) showToast(id ? `${avatarById(id).name} is your buddy now!` : 'Back to your initials.', 'success');
+    if (res.ok) showToast(id ? `${(avatarById(id) || tutorAvatarById(id)).name} is your ${isTutor ? 'character' : 'buddy'} now!` : 'Back to your initials.', 'success');
   };
 
   const joined = since ? new Date(since).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : null;
@@ -108,14 +109,27 @@ export default function ProfileView({ onSwitch }) {
         </section>
 
         {isTutor ? (
-          <section className="card card-pad buddy-card" aria-label="Your character">
+          <section className="card card-pad buddy-card" aria-labelledby="buddy-title">
+            <div className="card-title" id="buddy-title" style={{ marginBottom: 4 }}><Icon name="sparkle" /> Your character</div>
+            <p className="fine-print" style={{ margin: '0 0 14px' }}>Pick the character that shows next to your name. Students see it beside your messages.</p>
             <div className="buddy-now">
-              <TutorAvatar size={96} label="The Hibiscus Teacher" />
+              <TutorAvatar id={currentUser.avatar} size={84} label={tutorAvatarById(currentUser.avatar)?.name || 'Hibiscus Teacher'} />
               <div>
-                <strong>The Hibiscus Teacher</strong>
+                <strong>{(tutorAvatarById(currentUser.avatar) || tutorAvatarById(DEFAULT_TUTOR_AVATAR)).name}</strong>
                 <span className="chip chip-orange" style={{ marginLeft: 8 }}>Tutor</span>
-                <p className="fine-print" style={{ margin: '4px 0 0' }}>This is your own character. Students pick from ten friends that grow as they finish lessons, and they see you as the Hibiscus Teacher next to your messages.</p>
+                <p className="fine-print" style={{ margin: '4px 0 0' }}>{(tutorAvatarById(currentUser.avatar) || tutorAvatarById(DEFAULT_TUTOR_AVATAR)).blurb}</p>
               </div>
+            </div>
+            <div className="buddy-grid">
+              {TUTOR_AVATARS.map(a => {
+                const on = (tutorAvatarById(currentUser.avatar) ? currentUser.avatar : DEFAULT_TUTOR_AVATAR) === a.id;
+                return (
+                  <button key={a.id} type="button" className={`buddy-pick ${on ? 'is-on' : ''}`} aria-pressed={on} disabled={avBusy} onClick={() => pick(a.id)} title={a.blurb}>
+                    <TutorAvatar id={a.id} size={72} />
+                    <span>{a.name}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         ) : (
