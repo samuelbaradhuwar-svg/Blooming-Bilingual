@@ -1,7 +1,7 @@
 import { useEffect, useState, useId } from 'react';
 import { supabase } from '../../lib/supabase';
 
-// Friendly characters people can pick as their picture. Ten original characters (five for girls, five for boys) in a
+// Friendly characters people can pick as their picture. Ten original characters (two rows of five) in a
 // sweet, round "kawaii" style. Each one grows through five levels as a student takes lessons:
 //   level 1  the character
 //   level 2  + a hibiscus flower

@@ -132,8 +132,7 @@ export default function ProfileView({ onSwitch }) {
             </div>
           </div>
           {['girls', 'boys'].map(group => (
-            <fieldset key={group} className="buddy-group">
-              <legend>{group === 'girls' ? 'Girls' : 'Boys'} <small>(anyone can pick anyone)</small></legend>
+            <fieldset key={group} className="buddy-group" aria-label={group === 'girls' ? 'Characters, first row' : 'Characters, second row'}>
               <div className="buddy-grid">
                 {AVATARS.filter(a => a.group === group).map(a => (
                   <button key={a.id} type="button" className={`buddy-pick ${currentUser.avatar === a.id ? 'is-on' : ''}`} aria-pressed={currentUser.avatar === a.id}
