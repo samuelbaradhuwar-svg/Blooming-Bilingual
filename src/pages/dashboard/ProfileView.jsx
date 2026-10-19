@@ -7,7 +7,7 @@ import { COUNTRIES } from '../../data/constants';
 import { timeZoneGroups, deviceTimeZone, timeIn, prettyZone } from '../../lib/time';
 import Icon from '../../components/ui/Icon';
 import Field from '../../components/ui/Field';
-import { Avatar, PersonAvatar, AVATARS, AVATAR_LEVELS, avatarById, levelFor } from '../../components/ui/avatars';
+import { Avatar, PersonAvatar, TutorAvatar, AVATARS, AVATAR_LEVELS, avatarById, levelFor } from '../../components/ui/avatars';
 
 const MIN_PASSWORD = 6;   // the same rule as creating an account
 
@@ -107,6 +107,18 @@ export default function ProfileView({ onSwitch }) {
           </div>
         </section>
 
+        {isTutor ? (
+          <section className="card card-pad buddy-card" aria-label="Your character">
+            <div className="buddy-now">
+              <TutorAvatar size={96} label="The Hibiscus Teacher" />
+              <div>
+                <strong>The Hibiscus Teacher</strong>
+                <span className="chip chip-orange" style={{ marginLeft: 8 }}>Tutor</span>
+                <p className="fine-print" style={{ margin: '4px 0 0' }}>This is your own character. Students pick from ten friends that grow as they finish lessons, and they see you as the Hibiscus Teacher next to your messages.</p>
+              </div>
+            </div>
+          </section>
+        ) : (
         <section className="card card-pad buddy-card" aria-labelledby="buddy-title">
           <div className="card-title" id="buddy-title" style={{ marginBottom: 4 }}><Icon name="sparkle" /> {isTutor ? 'Your character' : 'Choose your buddy'}</div>
           <p className="fine-print" style={{ margin: '0 0 14px' }}>
@@ -159,6 +171,7 @@ export default function ProfileView({ onSwitch }) {
           </div>
           {currentUser.avatar && <button type="button" className="linkish" style={{ marginTop: 10 }} onClick={() => pick(null)}>Use my initials instead</button>}
         </section>
+        )}
 
         <div className="profile-grid">
           <form className="card card-pad" onSubmit={save} noValidate>

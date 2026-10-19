@@ -12,14 +12,6 @@ end $$;
 -- People may change their own avatar (the existing row policy already limits them to their own row).
 grant update (avatar) on public.profiles to authenticated;
 
--- Students see the tutor's picture next to her messages.
-create or replace function public.tutor_avatar()
-returns text language sql stable security definer set search_path = public as $$
-  select avatar from public.profiles where role = 'admin' order by created_at limit 1;
-$$;
-revoke all on function public.tutor_avatar() from public, anon;
-grant execute on function public.tutor_avatar() to authenticated;
-
 -- The tutor sees each student's chosen character, and how many lessons they have finished (which sets its level).
 create or replace function public.admin_avatars()
 returns table (student_id uuid, avatar text, lessons_done integer)

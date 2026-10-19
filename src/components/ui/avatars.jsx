@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
 //   level 3  + a scarf
 //   level 4  + a graduation cap
 //   level 5  + a golden crown and sparkles
-// The tutor can pick any character and always wears the top level.
+// The tutor does not pick from these: she has her own character, the Hibiscus Teacher (TutorAvatar below).
 
 export const AVATAR_LEVELS = [
   { level: 1, min: 0,  name: 'Sprout' },
@@ -292,8 +292,11 @@ export function Avatar({ id, level = 1, size = 48, label, className = '' }) {
  * initials if they have not chosen one yet. `className` is the circle's own class (it sets the size).
  */
 export function PersonAvatar({ avatar, lessons = 0, tutor = false, initials = '?', className = 'avatar', style, label }) {
+  if (tutor) {
+    return <span className={`${className} has-art`} style={style}><TutorAvatar size={96} label={label} /></span>;
+  }
   if (avatarById(avatar)) {
-    return <span className={`${className} has-art`} style={style}><Avatar id={avatar} level={tutor ? 5 : levelFor(lessons)} size={96} label={label} /></span>;
+    return <span className={`${className} has-art`} style={style}><Avatar id={avatar} level={levelFor(lessons)} size={96} label={label} /></span>;
   }
   return <span className={className} style={style} aria-hidden={label ? undefined : true} aria-label={label} role={label ? 'img' : undefined}>{initials}</span>;
 }
@@ -312,13 +315,43 @@ export function useStudentAvatars() {
   return map;
 }
 
-/** The tutor's own character, for students to see in the chat. */
-export function useTutorAvatar() {
-  const [avatar, setAvatar] = useState(null);
-  useEffect(() => {
-    let live = true;
-    supabase.rpc('tutor_avatar').then(({ data, error }) => { if (live && !error) setAvatar(data || null); });
-    return () => { live = false; };
-  }, []);
-  return avatar;
+/**
+ * The tutor's own character: the Hibiscus Teacher, the logo flower with gold glasses and a graduation cap, in a plum
+ * badge with a gold studded ring. Kids' characters are soft pastel animals; hers is deliberately different.
+ */
+export function TutorAvatar({ size = 48, label, className = '' }) {
+  const uid = useId().replace(/:/g, '');
+  const a11y = label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true, focusable: 'false' };
+  const stroke = { stroke: OUTLINE, strokeWidth: 3, strokeLinejoin: 'round', strokeLinecap: 'round' };
+  const glass = { fill: '#fff', fillOpacity: 0.25, stroke: `url(#${uid}g)`, strokeWidth: 2.4 };
+  return (
+    <svg className={`avatar-art ${className}`.trim()} viewBox="0 0 120 120" width={size} height={size} {...a11y}>
+      <defs>
+        <radialGradient id={`${uid}b`} cx=".5" cy=".35" r=".8"><stop offset="0" stopColor="#9B3A78" /><stop offset="1" stopColor="#280E2D" /></radialGradient>
+        <linearGradient id={`${uid}g`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FBEAB4" /><stop offset=".5" stopColor="#E2B85A" /><stop offset="1" stopColor="#B88A36" /></linearGradient>
+        <linearGradient id={`${uid}p`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FAD0E0" /><stop offset=".5" stopColor="#F2A9C4" /><stop offset="1" stopColor="#DE7FA8" /></linearGradient>
+        <clipPath id={`${uid}c`}><circle cx="60" cy="60" r="56" /></clipPath>
+      </defs>
+      <circle cx="60" cy="60" r="60" fill={`url(#${uid}g)`} />
+      <circle cx="60" cy="60" r="56.5" fill={`url(#${uid}b)`} />
+      <g clipPath={`url(#${uid}c)`}>
+        {[0, 72, 144, 216, 288].map(a => <ellipse key={a} cx="60" cy="32" rx="22" ry="29" fill={`url(#${uid}p)`} stroke="#fff" strokeWidth="1.8" transform={`rotate(${a} 60 62)`} />)}
+        <ellipse cx="60" cy="66" rx="40" ry="29" fill="#FFF1F4" {...stroke} />
+        <g {...glass}><circle cx="41" cy="68" r="11" /><circle cx="79" cy="68" r="11" /></g>
+        <path d="M52 67 Q60 64 68 67" fill="none" stroke={`url(#${uid}g)`} strokeWidth="2.2" />
+        {[-1, 1].map(s => <ellipse key={s} cx={60 + s * 19} cy="68" rx="2.9" ry="3.7" fill={INK} />)}
+        <ellipse cx="60" cy="72" rx="4.2" ry="2.9" fill="#FFC93C" stroke="#E0A21C" strokeWidth="1" />
+        {[-1, 1].map(s => <ellipse key={s} cx={60 + s * 31} cy="76" rx="6" ry="3.4" fill="#FF8FB0" opacity=".55" />)}
+        <path d="M44 42 L44 52 Q60 61 76 52 L76 42 Z" fill="#3A1342" {...stroke} />
+        <path d="M24 38 L60 21 L96 38 L60 55 Z" fill="#3A1342" stroke={OUTLINE} strokeWidth="2.6" strokeLinejoin="round" />
+        <path d="M60 38 L93 41 L93 58" fill="none" stroke={`url(#${uid}g)`} strokeWidth="2.2" strokeLinecap="round" />
+        <rect x="90" y="56" width="6" height="10" rx="2" fill={`url(#${uid}g)`} stroke={OUTLINE} strokeWidth="1.4" />
+        <circle cx="60" cy="38" r="3.2" fill={`url(#${uid}g)`} stroke={OUTLINE} strokeWidth="1.2" />
+      </g>
+      <circle cx="60" cy="60" r="56.5" fill="none" stroke="#FBEAB4" strokeWidth=".8" opacity=".8" />
+      {[0, 45, 90, 135, 180, 225, 270, 315].map(a => <circle key={a} cx="60" cy="3.2" r="1.5" fill="#FFF3C9" transform={`rotate(${a} 60 60)`} />)}
+      <path d="M95 20 q1 -4 5 -5 q-4 -1 -5 -5 q-1 4 -5 5 q4 1 5 5z" fill="#FFF3C9" opacity=".9" />
+      <path d="M22 28 q.7 -2.6 3.2 -3.2 q-2.5 -.7 -3.2 -3.2 q-.7 2.5 -3.2 3.2 q2.5 .6 3.2 3.2z" fill="#FFF3C9" opacity=".8" />
+    </svg>
+  );
 }
