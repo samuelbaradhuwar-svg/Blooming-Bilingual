@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { PersonAvatar, useStudentAvatars } from '../../../components/ui/avatars';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
@@ -22,6 +23,7 @@ const initials = (n) => (n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(
 export default function AdminStudentDetail({ id }) {
   const { currentUser, openModal, showToast } = useApp();
   const navigate = useNavigate();
+  const av = useStudentAvatars();
   const [params, setParams] = useSearchParams();
   const tab = TABS.some(([k]) => k === params.get('tab')) ? params.get('tab') : 'overview';
   const setTab = (k) => setParams(k === 'overview' ? {} : { tab: k }, { replace: true });
@@ -104,7 +106,7 @@ export default function AdminStudentDetail({ id }) {
       </DashHeader>
       <div className="dash-main">
         <section className="card profile-head" aria-label="Student">
-          <span className="avatar profile-avatar" aria-hidden="true">{initials(p.full_name || p.email)}</span>
+          <PersonAvatar className="avatar profile-avatar" avatar={av[p.id]?.avatar} lessons={av[p.id]?.lessons} initials={initials(p.full_name || p.email)} />
           <div className="profile-id">
             <h2>{p.full_name || '(no name)'} {p.english_level && <span className="chip chip-green" title="English level">{p.english_level}</span>}</h2>
             <p className="profile-meta">

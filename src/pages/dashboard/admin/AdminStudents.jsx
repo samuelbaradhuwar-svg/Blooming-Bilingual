@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PersonAvatar, useStudentAvatars } from '../../../components/ui/avatars';
 import { useNavigate } from 'react-router-dom';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import { useApp } from '../../../context/AppContext';
@@ -12,6 +13,7 @@ import { SkeletonRows } from '../../../components/ui/Skeleton';
 export default function AdminStudents() {
   const { currentUser, openModal, showToast } = useApp();
   const navigate = useNavigate();
+  const av = useStudentAvatars();
   const tz = currentUser?.timezone || 'UTC';
   const [rows, setRows] = useState(null);
   const [q, setQ] = useState('');
@@ -45,7 +47,7 @@ export default function AdminStudents() {
             <div key={r.id} className="student-row" role="link" tabIndex={0} aria-label={`Open ${r.full_name || r.email}`}
               onClick={() => open(r)}
               onKeyDown={e => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(r); } }}>
-              <span className="avatar" aria-hidden="true">{initials(r.full_name || r.email)}</span>
+              <PersonAvatar avatar={av[r.id]?.avatar} lessons={av[r.id]?.lessons} initials={initials(r.full_name || r.email)} />
               <div className="hw-info" style={{ minWidth: 0 }}>
                 <strong>{r.full_name || '(no name)'} {r.english_level && <span className="chip chip-green" style={{ marginLeft: 6 }}>{r.english_level}</span>}</strong>
                 <span>{r.email} · {r.country || 'Country not set'} · {(r.timezone || '').replace(/_/g, ' ')}</span>

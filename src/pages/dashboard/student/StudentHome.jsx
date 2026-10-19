@@ -63,6 +63,7 @@ export default function StudentHome({ onSwitch, onBuyCredits }) {
           <Hibiscus variant="silhouette" className="welcome-flower" />
           <h2 className="welcome-title">{greeting}, {name}</h2>
           <p>{d?.next ? 'Here is what is coming up in your learning.' : 'Ready for your next lesson? Pick a time that suits you.'}</p>
+          {!currentUser?.avatar && <button type="button" className="btn btn-outline btn-sm welcome-buddy" onClick={() => onSwitch('profile')}><Icon name="sparkle" /> Pick your buddy</button>}
         </section>
 
         <div className="dash-grid-4" style={{ marginBottom: 20 }}>

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { PersonAvatar } from '../ui/avatars';
 import { useBurger } from './DashLayout';
 import { useApp } from '../../context/AppContext';
 import Icon from '../ui/Icon';
@@ -30,8 +31,8 @@ export default function DashHeader({ title, children }) {
           </button>
         )}
         {currentUser && (
-          <button type="button" className="header-avatar" onClick={() => navigate('/dashboard/profile')} aria-label="Your profile" title="Your profile" style={{ background: currentUser.color }}>
-            {currentUser.initials}
+          <button type="button" className="header-avatar" onClick={() => navigate('/dashboard/profile')} aria-label="Your profile" title="Your profile" style={currentUser.avatar ? undefined : { background: currentUser.color }}>
+            <PersonAvatar className="header-avatar-face" avatar={currentUser.avatar} lessons={currentUser.lessonsTaken} tutor={currentUser.role === 'admin'} initials={currentUser.initials} />
           </button>
         )}
         {children}

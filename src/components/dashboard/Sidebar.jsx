@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PersonAvatar } from '../ui/avatars';
 import { useApp } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
@@ -116,9 +117,7 @@ export default function Sidebar({ activeView, onSwitch, open, onClose }) {
             aria-current={activeView === 'profile' ? 'page' : undefined}
             aria-label={`Your profile: ${currentUser?.name}`}
           >
-            <span className="sidebar-user-avatar" style={{ background: currentUser?.color }}>
-              {currentUser?.initials}
-            </span>
+            <PersonAvatar className="sidebar-user-avatar" style={{ background: currentUser?.color }} avatar={currentUser?.avatar} lessons={currentUser?.lessonsTaken} tutor={isAdmin} initials={currentUser?.initials} />
             <span className="sidebar-user-text">
               <span className="sidebar-user-name">{currentUser?.name}</span>
               <span className="sidebar-user-role">{isAdmin ? 'Tutor · Admin' : 'Student'} · View profile</span>

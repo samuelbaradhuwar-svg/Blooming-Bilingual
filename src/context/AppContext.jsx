@@ -14,13 +14,16 @@ const initialsOf = (name) =>
 // Combine the auth user, their profile row and their credit balance into the shape the UI uses.
 async function loadCurrentUser(authUser) {
   let [{ data: profile, error }, { data: credits }] = await Promise.all([
-    supabase.from('profiles').select('full_name, role, country, timezone, english_level, next_lesson_focus').eq('id', authUser.id).single(),
+    supabase.from('profiles').select('full_name, role, country, timezone, english_level, next_lesson_focus, avatar').eq('id', authUser.id).single(),
     supabase.rpc('my_credits'),
   ]);
   if (error) {
     // The newer columns may not exist yet (database script not run): never lose the user's role over that.
     ({ data: profile } = await supabase.from('profiles').select('full_name, role, country, timezone').eq('id', authUser.id).single());
   }
+  // Finished lessons set how far a student's avatar has grown (the tutor always shows the top level).
+  const { count: lessonsTaken } = await supabase.from('bookings').select('id', { count: 'exact', head: true })
+    .eq('student_id', authUser.id).in('status', ['confirmed', 'completed']).lt('ends_at', new Date().toISOString());
   const name = profile?.full_name || authUser.email;
   const role = profile?.role ?? 'student';
   return {
@@ -34,6 +37,8 @@ async function loadCurrentUser(authUser) {
     englishLevel: profile?.english_level ?? null,
     nextLessonFocus: profile?.next_lesson_focus ?? null,
     timezone: profile?.timezone && profile.timezone !== 'UTC' ? profile.timezone : browserTimezone(),
+    avatar: profile?.avatar ?? null,
+    lessonsTaken: lessonsTaken ?? 0,
     credits: credits ?? 0,
   };
 }
@@ -190,11 +195,20 @@ export function AppProvider({ children }) {
     return { ok: true };
   }, [currentUser, showToast]);
 
+  // Choose (or clear) the character used as a person's picture.
+  const saveAvatar = useCallback(async (avatar) => {
+    if (!currentUser) return { ok: false };
+    const { error } = await supabase.from('profiles').update({ avatar: avatar || null }).eq('id', currentUser.id);
+    if (error) { showToast('Could not save your character. Please try again.', 'error'); return { ok: false }; }
+    setCurrentUser(u => ({ ...u, avatar: avatar || null }));
+    return { ok: true };
+  }, [currentUser, showToast]);
+
   const value = useMemo(() => ({
-    currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, updateProfile, chatUnread, refreshChatUnread,
+    currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, updateProfile, saveAvatar, chatUnread, refreshChatUnread,
     toast, showToast,
     modal, openModal, closeModal,
-  }), [currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, updateProfile, chatUnread, refreshChatUnread, toast, showToast, modal, openModal, closeModal]);
+  }), [currentUser, authLoading, login, logout, register, refreshCredits, setTimezone, updateProfile, saveAvatar, chatUnread, refreshChatUnread, toast, showToast, modal, openModal, closeModal]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

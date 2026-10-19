@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PersonAvatar, useStudentAvatars } from '../../../components/ui/avatars';
 import { useNavigate } from 'react-router-dom';
 import DashHeader from '../../../components/dashboard/DashHeader';
 import ChatThread from '../../../components/ChatThread';
@@ -16,6 +17,7 @@ const initials = (n) => (n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(
 export default function AdminChat({ id }) {
   const { currentUser, showToast } = useApp();
   const navigate = useNavigate();
+  const av = useStudentAvatars();
   const tz = currentUser?.timezone || 'UTC';
   const [convos, setConvos] = useState(null);
   const [students, setStudents] = useState([]);
@@ -62,7 +64,7 @@ export default function AdminChat({ id }) {
                   <EmptyState compact title="No conversations yet">When a student writes to you, it appears here.</EmptyState>
                 ) : convos.map(c => (
                   <button key={c.student_id} type="button" className={`convo ${c.unread ? 'unread' : ''} ${c.student_id === id ? 'active' : ''}`} onClick={() => open(c.student_id)} aria-current={c.student_id === id ? 'true' : undefined}>
-                    <span className="avatar" aria-hidden="true">{initials(c.full_name || c.email)}</span>
+                    <PersonAvatar avatar={av[c.student_id]?.avatar} lessons={av[c.student_id]?.lessons} initials={initials(c.full_name || c.email)} />
                     <span className="convo-name">{c.full_name || c.email}</span>
                     <span className="convo-time">{when(c.last_at)}</span>
                     <span className="convo-preview">{c.last_from_student ? '' : 'You: '}{c.last_body}</span>
@@ -89,7 +91,7 @@ export default function AdminChat({ id }) {
               <>
                 <div className="thread-head">
                   <button type="button" className="btn btn-ghost btn-sm btn-back" onClick={() => navigate('/dashboard/admin-messages')} aria-label="Back to all conversations"><Icon name="back" /> All</button>
-                  <span className="avatar" aria-hidden="true">{initials(person.name)}</span>
+                  <PersonAvatar avatar={av[id]?.avatar} lessons={av[id]?.lessons} initials={initials(person.name)} />
                   <h2>{person.name}<small>{person.email}</small></h2>
                   <button type="button" className="btn btn-outline btn-sm" style={{ marginLeft: 'auto' }} onClick={() => navigate(`/dashboard/admin-students/${id}`)}>View profile</button>
                 </div>

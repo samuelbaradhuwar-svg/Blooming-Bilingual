@@ -7,12 +7,13 @@ import { COUNTRIES } from '../../data/constants';
 import { timeZoneGroups, deviceTimeZone, timeIn, prettyZone } from '../../lib/time';
 import Icon from '../../components/ui/Icon';
 import Field from '../../components/ui/Field';
+import { Avatar, PersonAvatar, AVATARS, AVATAR_LEVELS, avatarById, levelFor } from '../../components/ui/avatars';
 
 const MIN_PASSWORD = 6;   // the same rule as creating an account
 
 /** "My profile": the same page for the tutor and for students. People edit their own name, country and time zone; the rest is shown, not editable. */
 export default function ProfileView({ onSwitch }) {
-  const { currentUser, updateProfile, logout, showToast } = useApp();
+  const { currentUser, updateProfile, saveAvatar, logout, showToast } = useApp();
   const navigate = useNavigate();
   const isTutor = currentUser.role === 'admin';
 
@@ -67,6 +68,17 @@ export default function ProfileView({ onSwitch }) {
     showToast('Your password was changed.', 'success');
   };
 
+  const lessons = currentUser.lessonsTaken || 0;
+  const level = isTutor ? 5 : levelFor(lessons);
+  const next = isTutor ? null : AVATAR_LEVELS.find(l => l.min > lessons);
+  const [avBusy, setAvBusy] = useState(false);
+  const pick = async (id) => {
+    setAvBusy(true);
+    const res = await saveAvatar(id);
+    setAvBusy(false);
+    if (res.ok) showToast(id ? `${avatarById(id).name} is your buddy now!` : 'Back to your initials.', 'success');
+  };
+
   const joined = since ? new Date(since).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : null;
   const nowThere = (() => { try { return timeIn(timezone, new Date()); } catch { return null; } })();
 
@@ -75,7 +87,7 @@ export default function ProfileView({ onSwitch }) {
       <DashHeader title="My profile" />
       <div className="dash-main">
         <section className="card profile-head" aria-label="You">
-          <span className="avatar profile-avatar is-big" style={{ background: currentUser.color }} aria-hidden="true">{currentUser.initials}</span>
+          <PersonAvatar className="avatar profile-avatar is-big" style={{ background: currentUser.color }} avatar={currentUser.avatar} lessons={currentUser.lessonsTaken} tutor={isTutor} initials={currentUser.initials} />
           <div className="profile-id">
             <h2>{currentUser.name === currentUser.email ? 'Welcome' : currentUser.name}</h2>
             <p className="profile-meta">
@@ -93,6 +105,60 @@ export default function ProfileView({ onSwitch }) {
             {!isTutor && <button type="button" className="btn btn-outline btn-sm" onClick={() => onSwitch('credits')}><Icon name="credits" /> Credits & billing</button>}
             <button type="button" className="btn btn-ghost btn-sm" onClick={async () => { await logout(); navigate('/'); }}><Icon name="signout" /> Sign out</button>
           </div>
+        </section>
+
+        <section className="card card-pad buddy-card" aria-labelledby="buddy-title">
+          <div className="card-title" id="buddy-title" style={{ marginBottom: 4 }}><Icon name="sparkle" /> {isTutor ? 'Your character' : 'Choose your buddy'}</div>
+          <p className="fine-print" style={{ margin: '0 0 14px' }}>
+            {isTutor
+              ? 'Pick the character that shows next to your name. Yours always wears the golden crown.'
+              : 'Pick a friend to be your picture. Your buddy grows as you finish lessons: new things appear at 5, 10, 20 and 40 lessons!'}
+          </p>
+          <div className="buddy-now">
+            {avatarById(currentUser.avatar)
+              ? <Avatar id={currentUser.avatar} level={level} size={84} label={`${avatarById(currentUser.avatar).name} the ${avatarById(currentUser.avatar).kind}, level ${level}`} />
+              : <span className="buddy-none" aria-hidden="true">?</span>}
+            <div>
+              {avatarById(currentUser.avatar) ? (
+                <>
+                  <strong>{avatarById(currentUser.avatar).name} the {avatarById(currentUser.avatar).kind}</strong>
+                  <span className="chip chip-orange" style={{ marginLeft: 8 }}>Level {level} · {AVATAR_LEVELS[level - 1].name}</span>
+                  <p className="fine-print" style={{ margin: '4px 0 0' }}>{avatarById(currentUser.avatar).blurb}</p>
+                </>
+              ) : <strong>No buddy yet. Tap one below!</strong>}
+              {!isTutor && (next
+                ? <p className="buddy-next"><Icon name="trophy" /> {next.min - lessons} more lesson{next.min - lessons === 1 ? '' : 's'} to reach Level {next.level}: {next.name}!</p>
+                : <p className="buddy-next"><Icon name="trophy" /> Top level reached. Superstar!</p>)}
+            </div>
+          </div>
+          {['girls', 'boys'].map(group => (
+            <fieldset key={group} className="buddy-group">
+              <legend>{group === 'girls' ? 'Girls' : 'Boys'} <small>(anyone can pick anyone)</small></legend>
+              <div className="buddy-grid">
+                {AVATARS.filter(a => a.group === group).map(a => (
+                  <button key={a.id} type="button" className={`buddy-pick ${currentUser.avatar === a.id ? 'is-on' : ''}`} aria-pressed={currentUser.avatar === a.id}
+                    disabled={avBusy} onClick={() => pick(a.id)} title={a.blurb}>
+                    <Avatar id={a.id} level={level} size={72} />
+                    <span>{a.name}</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          ))}
+          <div className="buddy-levels" aria-label="How your buddy grows">
+            {AVATAR_LEVELS.map(l => (
+              <div key={l.level} className={`buddy-level ${level >= l.level ? 'is-got' : ''}`}>
+                <div className="buddy-level-art">
+                  <Avatar id={currentUser.avatar || 'bunny'} level={l.level} size={56} />
+                  {level < l.level && <span className="buddy-lock"><Icon name="lock" /></span>}
+                </div>
+                <strong>Lv {l.level}</strong>
+                <small>{l.name}</small>
+                <small className="buddy-min">{l.min === 0 ? 'Start' : `${l.min} lessons`}</small>
+              </div>
+            ))}
+          </div>
+          {currentUser.avatar && <button type="button" className="linkish" style={{ marginTop: 10 }} onClick={() => pick(null)}>Use my initials instead</button>}
         </section>
 
         <div className="profile-grid">
